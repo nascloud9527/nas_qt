@@ -25,6 +25,14 @@ ApplicationWindow {
         onItemChanged: {
             if (item && item.loginSuccess) {
                 item.loginSuccess.connect(function() {
+                    // 设置 token 和用户名
+                    fileVM.set_token(loginVM.get_token())
+                    fileVM.set_username(loginVM.get_username())
+                    
+                    // 加载文件列表（使用用户名作为目录）
+                    fileVM.load_file_list("")
+                    
+                    // 切换到主页面
                     mainPageLoader.source = "MainPage.qml"
                 })
             }

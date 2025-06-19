@@ -51,6 +51,96 @@ paths:
                     type: string
                     example: Invalid credentials
 
+  /api/chpwd:
+    post:
+      tags:
+        - 用户管理相关接口
+      summary: 修改用户密码
+      description: |
+        - 管理员专用接口，用于修改指定用户的密码
+        - 只有 admin 用户才能调用此接口
+        - 需携带 Bearer Token 进行认证
+        - 修改成功后，用户需要使用新密码重新登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  description: 要修改密码的用户名
+                  example: "user123"
+                password:
+                  type: string
+                  description: 新的密码
+                  example: "newpassword123"
+            examples:
+              修改用户密码示例:
+                value:
+                  username: "user123"
+                  password: "newpassword123"
+      responses:
+        '200':
+          description: 密码修改成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ok"
+              examples:
+                修改成功:
+                  value:
+                    message: "ok"
+        '400':
+          description: 请求参数错误或权限不足
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                权限不足:
+                  value:
+                    error: "only for admin"
+                参数缺失:
+                  value:
+                    error: "Key: 'username' Error:Field validation for 'username' failed on the 'required' tag"
+                用户不存在:
+                  value:
+                    error: "User not found"
+        '401':
+          description: 未授权，需要有效的JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '500':
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+      security:
+        - bearerAuth: []
+
   /api/files:
     get:
       tags:
@@ -660,6 +750,276 @@ paths:
                   error:
                     type: string
                     example: "Failed to delete files"
+      security:
+        - bearerAuth: []
+
+  /api/getdirtree:
+    get:
+      tags:
+        - 文件操作相关接口
+      summary: 获取目录树
+      description: |
+        - 获取当前用户的完整目录树结构
+        - 需携带 Bearer Token 进行认证
+        - 返回用户目录下的所有文件夹及其子文件夹的树形结构
+        - 自动排除 USB 目录和文件，只返回文件夹
+        - 适用于前端树形控件展示目录结构
+        - 管理员用户获取所有目录，普通用户只获取自己的目录
+      responses:
+        '200':
+          description: 成功获取目录树
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dirs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        value:
+                          type: string
+                          description: 目录的相对路径值
+                          example: "documents"
+                        title:
+                          type: string
+                          description: 目录的显示名称
+                          example: "documents"
+                        children:
+                          type: array
+                          description: 子目录列表
+                          items:
+                            type: object
+                            properties:
+                              value:
+                                type: string
+                                description: 子目录的相对路径值
+                                example: "documents/work"
+                              title:
+                                type: string
+                                description: 子目录的显示名称
+                                example: "work"
+                              children:
+                                type: array
+                                description: 更深层级的子目录列表
+                                items:
+                                  type: object
+              examples:
+                简单目录结构:
+                  value:
+                    dirs:
+                      - value: "documents"
+                        title: "documents"
+                        children:
+                          - value: "documents/work"
+                            title: "work"
+                            children: []
+                          - value: "documents/personal"
+                            title: "personal"
+                            children: []
+                      - value: "photos"
+                        title: "photos"
+                        children:
+                          - value: "photos/vacation"
+                            title: "vacation"
+                            children: []
+                复杂目录结构:
+                  value:
+                    dirs:
+                      - value: "documents"
+                        title: "documents"
+                        children:
+                          - value: "documents/work"
+                            title: "work"
+                            children:
+                              - value: "documents/work/projects"
+                                title: "projects"
+                                children:
+                                  - value: "documents/work/projects/client_a"
+                                    title: "client_a"
+                                    children: []
+                                  - value: "documents/work/projects/client_b"
+                                    title: "client_b"
+                                    children: []
+                          - value: "documents/personal"
+                            title: "personal"
+                            children:
+                              - value: "documents/personal/finance"
+                                title: "finance"
+                                children: []
+                      - value: "media"
+                        title: "media"
+                        children:
+                          - value: "media/videos"
+                            title: "videos"
+                            children: []
+                          - value: "media/music"
+                            title: "music"
+                            children: []
+                空目录结构:
+                  value:
+                    dirs: []
+        '401':
+          description: 未授权，需要有效的JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '500':
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to read dir"
+      security:
+        - bearerAuth: []
+
+  /api/copyfile:
+    post:
+      tags:
+        - 文件操作相关接口
+      summary: 复制或移动文件
+      description: |
+        - 复制或移动文件到指定目录
+        - 需携带 Bearer Token 进行认证
+        - 支持批量操作，可同时处理多个文件
+        - 自动处理文件名冲突，自动添加序号
+        - 支持跨存储设备操作（如从存储到USB或从USB到存储）
+        - 管理员可以操作所有文件，普通用户只能操作自己的文件
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - action
+                - todir
+                - files
+              properties:
+                action:
+                  type: string
+                  enum: ["copy", "move"]
+                  description: 操作类型，copy表示复制，move表示移动
+                  example: "copy"
+                todir:
+                  type: string
+                  description: 目标目录的相对路径
+                  example: "admin/文档"
+                files:
+                  type: array
+                  items:
+                    type: string
+                  description: 要操作的文件或目录的相对路径数组
+                  example: ["admin/图片/photo1.jpg", "admin/文档/report.pdf"]
+                  minItems: 1
+            examples:
+              复制单个文件:
+                value:
+                  action: "copy"
+                  todir: "admin/文档"
+                  files: ["admin/图片/photo1.jpg"]
+              复制多个文件:
+                value:
+                  action: "copy"
+                  todir: "admin/备份"
+                  files: 
+                    - "admin/文档/report.pdf"
+                    - "admin/图片/vacation.jpg"
+                    - "admin/视频/demo.mp4"
+              移动文件:
+                value:
+                  action: "move"
+                  todir: "admin/归档"
+                  files: ["admin/文档/old_report.pdf"]
+              跨设备复制:
+                value:
+                  action: "copy"
+                  todir: "admin/USB/backup"
+                  files: ["admin/重要文档/contract.docx"]
+      responses:
+        '200':
+          description: 文件操作成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ok"
+              examples:
+                操作成功:
+                  value:
+                    message: "ok"
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                参数格式错误:
+                  value:
+                    error: "Invalid JSON format"
+                缺少必需参数:
+                  value:
+                    error: "Key: 'action' Error:Field validation for 'action' failed on the 'required' tag"
+                空文件列表:
+                  value:
+                    error: "Files array cannot be empty"
+        '401':
+          description: 未授权，需要有效的JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '403':
+          description: 权限不足，无法操作指定文件
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Access denied"
+        '404':
+          description: 文件或目标目录不存在
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "File not found"
+        '500':
+          description: 服务器内部错误或文件操作失败
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to copy file"
       security:
         - bearerAuth: []
 

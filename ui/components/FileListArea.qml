@@ -6,18 +6,6 @@ Rectangle {
     id: fileListArea
     color: themeManager.backgroundColor
 
-    // 演示文件数据
-    property var fileList: [
-        { name: "工作文档.docx", type: "文档", size: "2.5 MB", date: "2024-01-15" },
-        { name: "项目计划.pdf", type: "文档", size: "1.8 MB", date: "2024-01-14" },
-        { name: "会议照片.jpg", type: "图片", size: "3.2 MB", date: "2024-01-13" },
-        { name: "演示视频.mp4", type: "视频", size: "15.6 MB", date: "2024-01-12" },
-        { name: "数据表格.xlsx", type: "文档", size: "856 KB", date: "2024-01-11" },
-        { name: "风景图片.png", type: "图片", size: "4.1 MB", date: "2024-01-10" },
-        { name: "音乐文件.mp3", type: "音频", size: "8.3 MB", date: "2024-01-09" },
-        { name: "备份文件.zip", type: "压缩包", size: "25.7 MB", date: "2024-01-08" }
-    ]
-
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
@@ -32,6 +20,18 @@ Rectangle {
                 anchors.fill: parent
                 anchors.margins: 16
                 spacing: 16
+
+                // 全选复选框
+                CheckBox {
+                    id: selectAllCheckBox
+                    Layout.preferredWidth: 24
+                    Layout.preferredHeight: 24
+                    
+                    onCheckedChanged: {
+                        // 全选/取消全选
+                        fileVM.select_all_files(checked)
+                    }
+                }
 
                 Text {
                     text: "文件名"
@@ -78,15 +78,42 @@ Rectangle {
             color: themeManager.dividerColor
         }
 
+        // 加载状态或错误信息
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 40
+            color: themeManager.surfaceColor
+            visible: fileVM.is_loading || fileVM.error_message !== ""
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.margins: 16
+
+                BusyIndicator {
+                    Layout.preferredWidth: 20
+                    Layout.preferredHeight: 20
+                    visible: fileVM.is_loading
+                }
+
+                Text {
+                    text: fileVM.is_loading ? "正在加载文件列表..." : fileVM.error_message
+                    font.pixelSize: 12
+                    color: fileVM.is_loading ? themeManager.textSecondaryColor : themeManager.errorColor
+                    Layout.fillWidth: true
+                }
+            }
+        }
+
         // 文件列表
         ScrollView {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            visible: !fileVM.is_loading && fileVM.error_message === ""
 
             ListView {
                 id: fileListView
                 anchors.fill: parent
-                model: fileList
+                model: fileVM.file_list
                 spacing: 1
 
                 delegate: Rectangle {
@@ -98,6 +125,17 @@ Rectangle {
                         anchors.fill: parent
                         anchors.margins: 16
                         spacing: 16
+
+                        // 文件选择复选框
+                        CheckBox {
+                            Layout.preferredWidth: 24
+                            Layout.preferredHeight: 24
+                            checked: modelData.selected
+                            
+                            onCheckedChanged: {
+                                fileVM.toggle_file_selection(index, checked)
+                            }
+                        }
 
                         // 文件图标（简化版）
                         Rectangle {
@@ -134,7 +172,7 @@ Rectangle {
 
                         // 修改日期
                         Text {
-                            text: modelData.date
+                            text: modelData.updatedAt
                             font.pixelSize: 12
                             color: themeManager.textSecondaryColor
                             Layout.preferredWidth: 100
@@ -150,7 +188,8 @@ Rectangle {
                         anchors.fill: parent
                         hoverEnabled: true
                         onClicked: {
-                            console.log("点击文件:", modelData.name)
+                            // 点击整行切换选择状态
+                            fileVM.toggle_file_selection(index, !modelData.selected)
                         }
                     }
                 }
@@ -161,6 +200,7 @@ Rectangle {
     // 根据文件类型返回颜色
     function getFileTypeColor(type) {
         switch(type) {
+            case "文件夹": return themeManager.primaryColor
             case "文档": return themeManager.primaryColor
             case "图片": return themeManager.successColor
             case "视频": return themeManager.warningColor
