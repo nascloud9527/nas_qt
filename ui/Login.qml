@@ -8,6 +8,9 @@ Item {
 
     property bool showPassword: false
 
+    // 添加信号通知登录成功
+    signal loginSuccess()
+
     // Material Design 颜色
     property color primaryColor: "#2196F3"
     property color primaryDarkColor: "#1976D2"
@@ -183,6 +186,10 @@ Item {
         target: loginVM
         function onLoginResult(msg) {
             resultText.text = msg
+            if (msg.includes("成功")) {
+                // 登录成功后发送信号
+                loginSuccess()
+            }
         }
     }
 } 
