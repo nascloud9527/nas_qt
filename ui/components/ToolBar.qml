@@ -4,13 +4,7 @@ import QtQuick.Layouts 1.15
 
 Rectangle {
     id: toolBar
-    color: surfaceColor
-
-    property color primaryColor: "#2196F3"
-    property color primaryDarkColor: "#1976D2"
-    property color textPrimaryColor: "#212121"
-    property color dividerColor: "#BDBDBD"
-    property color surfaceColor: "#FFFFFF"
+    color: themeManager.surfaceColor
 
     RowLayout {
         anchors.fill: parent
@@ -25,7 +19,7 @@ Rectangle {
             
             background: Rectangle {
                 radius: 18
-                color: parent.pressed ? primaryDarkColor : primaryColor
+                color: parent.pressed ? themeManager.primaryDarkColor : themeManager.primaryColor
                 border.color: "#40000000"
                 border.width: 1
             }
@@ -52,8 +46,8 @@ Rectangle {
             
             background: Rectangle {
                 radius: 18
-                color: parent.pressed ? "#E0E0E0" : "#F5F5F5"
-                border.color: dividerColor
+                color: parent.pressed ? themeManager.hoverColor : themeManager.backgroundColor
+                border.color: themeManager.dividerColor
                 border.width: 1
             }
             
@@ -61,7 +55,7 @@ Rectangle {
                 text: parent.text
                 font.pixelSize: 12
                 font.weight: Font.Medium
-                color: textPrimaryColor
+                color: themeManager.textPrimaryColor
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }

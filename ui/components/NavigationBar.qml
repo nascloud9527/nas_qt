@@ -4,12 +4,8 @@ import QtQuick.Layouts 1.15
 
 Rectangle {
     id: navigationBar
-    color: surfaceColor
+    color: themeManager.surfaceColor
 
-    property color primaryColor: "#2196F3"
-    property color textPrimaryColor: "#212121"
-    property color textSecondaryColor: "#757575"
-    property color surfaceColor: "#FFFFFF"
     property int currentIndex: 0
 
     RowLayout {
@@ -22,7 +18,7 @@ Rectangle {
             text: "NAS 文件管理系统"
             font.pixelSize: 18
             font.weight: Font.Medium
-            color: textPrimaryColor
+            color: themeManager.textPrimaryColor
             Layout.preferredWidth: 200
         }
 
@@ -40,8 +36,8 @@ Rectangle {
                     
                     background: Rectangle {
                         radius: 16
-                        color: navigationBar.currentIndex === index ? primaryColor : "transparent"
-                        border.color: navigationBar.currentIndex === index ? primaryColor : "transparent"
+                        color: navigationBar.currentIndex === index ? themeManager.primaryColor : "transparent"
+                        border.color: navigationBar.currentIndex === index ? themeManager.primaryColor : "transparent"
                         border.width: 1
                     }
                     
@@ -49,7 +45,7 @@ Rectangle {
                         text: parent.text
                         font.pixelSize: 12
                         font.weight: Font.Medium
-                        color: navigationBar.currentIndex === index ? "white" : textSecondaryColor
+                        color: navigationBar.currentIndex === index ? "white" : themeManager.textSecondaryColor
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                     }

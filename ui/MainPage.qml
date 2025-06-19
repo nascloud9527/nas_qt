@@ -6,18 +6,9 @@ Item {
     id: mainPage
     anchors.fill: parent
 
-    // Material Design 颜色
-    property color primaryColor: "#2196F3"
-    property color primaryDarkColor: "#1976D2"
-    property color backgroundColor: "#FAFAFA"
-    property color surfaceColor: "#FFFFFF"
-    property color textPrimaryColor: "#212121"
-    property color textSecondaryColor: "#757575"
-    property color dividerColor: "#BDBDBD"
-
     Rectangle {
         anchors.fill: parent
-        color: backgroundColor
+        color: themeManager.backgroundColor
 
         ColumnLayout {
             anchors.fill: parent
@@ -34,7 +25,7 @@ Item {
             Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 1
-                color: dividerColor
+                color: themeManager.dividerColor
             }
 
             // 2. 工具栏
@@ -48,7 +39,7 @@ Item {
             Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 1
-                color: dividerColor
+                color: themeManager.dividerColor
             }
 
             // 3. 文件列表区
@@ -56,6 +47,33 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 source: "components/FileListArea.qml"
+            }
+        }
+
+        // 主题切换按钮（右上角）
+        Button {
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.margins: 16
+            width: 40
+            height: 40
+            
+            background: Rectangle {
+                radius: 20
+                color: themeManager.surfaceColor
+                border.color: themeManager.dividerColor
+                border.width: 1
+            }
+            
+            contentItem: Text {
+                text: themeManager.isDarkTheme ? "☀️" : "🌙"
+                font.pixelSize: 16
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+            
+            onClicked: {
+                themeManager.toggleTheme()
             }
         }
     }

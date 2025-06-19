@@ -4,13 +4,7 @@ import QtQuick.Layouts 1.15
 
 Rectangle {
     id: fileListArea
-    color: backgroundColor
-
-    property color backgroundColor: "#FAFAFA"
-    property color surfaceColor: "#FFFFFF"
-    property color textPrimaryColor: "#212121"
-    property color textSecondaryColor: "#757575"
-    property color dividerColor: "#BDBDBD"
+    color: themeManager.backgroundColor
 
     // 演示文件数据
     property var fileList: [
@@ -32,7 +26,7 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 40
-            color: surfaceColor
+            color: themeManager.surfaceColor
 
             RowLayout {
                 anchors.fill: parent
@@ -43,7 +37,7 @@ Rectangle {
                     text: "文件名"
                     font.pixelSize: 12
                     font.weight: Font.Medium
-                    color: textSecondaryColor
+                    color: themeManager.textSecondaryColor
                     Layout.preferredWidth: 200
                 }
 
@@ -51,7 +45,7 @@ Rectangle {
                     text: "类型"
                     font.pixelSize: 12
                     font.weight: Font.Medium
-                    color: textSecondaryColor
+                    color: themeManager.textSecondaryColor
                     Layout.preferredWidth: 80
                 }
 
@@ -59,7 +53,7 @@ Rectangle {
                     text: "大小"
                     font.pixelSize: 12
                     font.weight: Font.Medium
-                    color: textSecondaryColor
+                    color: themeManager.textSecondaryColor
                     Layout.preferredWidth: 80
                 }
 
@@ -67,7 +61,7 @@ Rectangle {
                     text: "修改日期"
                     font.pixelSize: 12
                     font.weight: Font.Medium
-                    color: textSecondaryColor
+                    color: themeManager.textSecondaryColor
                     Layout.preferredWidth: 100
                 }
 
@@ -81,7 +75,7 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 1
-            color: dividerColor
+            color: themeManager.dividerColor
         }
 
         // 文件列表
@@ -98,7 +92,7 @@ Rectangle {
                 delegate: Rectangle {
                     width: fileListView.width
                     height: 50
-                    color: mouseArea.containsMouse ? "#F0F0F0" : surfaceColor
+                    color: mouseArea.containsMouse ? themeManager.hoverColor : themeManager.surfaceColor
 
                     RowLayout {
                         anchors.fill: parent
@@ -117,7 +111,7 @@ Rectangle {
                         Text {
                             text: modelData.name
                             font.pixelSize: 14
-                            color: textPrimaryColor
+                            color: themeManager.textPrimaryColor
                             Layout.preferredWidth: 200
                             elide: Text.ElideRight
                         }
@@ -126,7 +120,7 @@ Rectangle {
                         Text {
                             text: modelData.type
                             font.pixelSize: 12
-                            color: textSecondaryColor
+                            color: themeManager.textSecondaryColor
                             Layout.preferredWidth: 80
                         }
 
@@ -134,7 +128,7 @@ Rectangle {
                         Text {
                             text: modelData.size
                             font.pixelSize: 12
-                            color: textSecondaryColor
+                            color: themeManager.textSecondaryColor
                             Layout.preferredWidth: 80
                         }
 
@@ -142,7 +136,7 @@ Rectangle {
                         Text {
                             text: modelData.date
                             font.pixelSize: 12
-                            color: textSecondaryColor
+                            color: themeManager.textSecondaryColor
                             Layout.preferredWidth: 100
                         }
 
@@ -167,12 +161,12 @@ Rectangle {
     // 根据文件类型返回颜色
     function getFileTypeColor(type) {
         switch(type) {
-            case "文档": return "#2196F3"
-            case "图片": return "#4CAF50"
-            case "视频": return "#FF5722"
-            case "音频": return "#9C27B0"
+            case "文档": return themeManager.primaryColor
+            case "图片": return themeManager.successColor
+            case "视频": return themeManager.warningColor
+            case "音频": return themeManager.accentColor
             case "压缩包": return "#FF9800"
-            default: return "#757575"
+            default: return themeManager.textSecondaryColor
         }
     }
 } 

@@ -11,19 +11,9 @@ Item {
     // 添加信号通知登录成功
     signal loginSuccess()
 
-    // Material Design 颜色
-    property color primaryColor: "#2196F3"
-    property color primaryDarkColor: "#1976D2"
-    property color accentColor: "#FF4081"
-    property color backgroundColor: "#FAFAFA"
-    property color surfaceColor: "#FFFFFF"
-    property color textPrimaryColor: "#212121"
-    property color textSecondaryColor: "#757575"
-    property color dividerColor: "#BDBDBD"
-
     Rectangle {
         anchors.fill: parent
-        color: backgroundColor
+        color: themeManager.backgroundColor
 
         // 主卡片容器
         Rectangle {
@@ -32,7 +22,7 @@ Item {
             height: showPassword ? 200 : 120
             anchors.centerIn: parent
             radius: 8
-            color: surfaceColor
+            color: themeManager.surfaceColor
             
             // 简单的阴影效果（使用边框模拟）
             border.color: "#20000000"
@@ -48,14 +38,14 @@ Item {
                     text: "NAS 文件管理系统"
                     font.pixelSize: 20
                     font.weight: Font.Medium
-                    color: textPrimaryColor
+                    color: themeManager.textPrimaryColor
                     Layout.alignment: Qt.AlignHCenter
                 }
 
                 // 用户选择按钮区域
                 Row {
-                    visible: !showPassword
                     Layout.alignment: Qt.AlignHCenter
+                    visible: !showPassword
                     spacing: 12
 
                     Button {
@@ -65,7 +55,7 @@ Item {
                         
                         background: Rectangle {
                             radius: 24
-                            color: parent.pressed ? primaryDarkColor : primaryColor
+                            color: parent.pressed ? themeManager.primaryDarkColor : themeManager.primaryColor
                             border.color: "#40000000"
                             border.width: 1
                         }
@@ -86,14 +76,14 @@ Item {
                     }
 
                     Button {
-                        text: "Anonymous"
+                        text: "Public"
                         width: 120
                         height: 48
                         
                         background: Rectangle {
                             radius: 24
-                            color: parent.pressed ? "#E0E0E0" : "#F5F5F5"
-                            border.color: dividerColor
+                            color: parent.pressed ? themeManager.hoverColor : themeManager.backgroundColor
+                            border.color: themeManager.dividerColor
                             border.width: 1
                         }
                         
@@ -101,7 +91,7 @@ Item {
                             text: parent.text
                             font.pixelSize: 14
                             font.weight: Font.Medium
-                            color: textPrimaryColor
+                            color: themeManager.textPrimaryColor
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                         }
@@ -124,8 +114,8 @@ Item {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 48
                         radius: 24
-                        color: "#F5F5F5"
-                        border.color: passwordField.focus ? primaryColor : dividerColor
+                        color: themeManager.backgroundColor
+                        border.color: passwordField.focus ? themeManager.primaryColor : themeManager.dividerColor
                         border.width: passwordField.focus ? 2 : 1
 
                         TextField {
@@ -135,7 +125,7 @@ Item {
                             placeholderText: "请输入密码"
                             echoMode: TextInput.Password
                             font.pixelSize: 14
-                            color: textPrimaryColor
+                            color: themeManager.textPrimaryColor
                             background: null
                             padding: 16
                             
@@ -151,7 +141,7 @@ Item {
                         
                         background: Rectangle {
                             radius: 24
-                            color: parent.pressed ? primaryDarkColor : primaryColor
+                            color: parent.pressed ? themeManager.primaryDarkColor : themeManager.primaryColor
                             border.color: "#40000000"
                             border.width: 1
                         }
@@ -174,10 +164,37 @@ Item {
                     id: resultText
                     text: ""
                     font.pixelSize: 12
-                    color: resultText.text.includes("成功") ? "#4CAF50" : "#F44336"
+                    color: resultText.text.includes("成功") ? themeManager.successColor : themeManager.errorColor
                     Layout.alignment: Qt.AlignHCenter
                     visible: resultText.text !== ""
                 }
+            }
+        }
+
+        // 主题切换按钮（右上角）
+        Button {
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.margins: 16
+            width: 40
+            height: 40
+            
+            background: Rectangle {
+                radius: 20
+                color: themeManager.surfaceColor
+                border.color: themeManager.dividerColor
+                border.width: 1
+            }
+            
+            contentItem: Text {
+                text: themeManager.isDarkTheme ? "☀️" : "🌙"
+                font.pixelSize: 16
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+            
+            onClicked: {
+                themeManager.toggleTheme()
             }
         }
     }

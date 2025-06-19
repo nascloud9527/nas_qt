@@ -3,6 +3,7 @@ import os
 from PySide6.QtWidgets import QApplication
 from PySide6.QtQml import QQmlApplicationEngine
 from viewmodels.login_vm import LoginViewModel
+from viewmodels.theme_manager import ThemeManager
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -12,9 +13,12 @@ if __name__ == "__main__":
     ui_path = os.path.join(os.path.dirname(__file__), "ui")
     engine.addImportPath(ui_path)
 
-    # 创建 loginVM 并设置为全局上下文属性
+    # 创建 ViewModels 并设置为全局上下文属性
     login_vm = LoginViewModel()
+    theme_manager = ThemeManager()
+    
     engine.rootContext().setContextProperty("loginVM", login_vm)
+    engine.rootContext().setContextProperty("themeManager", theme_manager)
 
     # 加载主窗口
     engine.load("ui/MainWindow.qml")
