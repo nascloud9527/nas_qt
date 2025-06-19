@@ -1,0 +1,1712 @@
+openapi: 3.0.3
+info:
+  title: File Server API
+  version: 1.0.0
+  description: 接口说明：登录、获取文件列表等功能。后续请求需携带 JWT token。
+
+servers:
+  - url: http://192.168.1.102:8080
+
+paths:
+  /api/login:
+    post:
+      tags:
+        - 公共路由 - 无需认证即可访问的接口
+      summary: 用户登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: admin
+                password:
+                  type: string
+                  example: 123456
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '401':
+          description: 登录失败（用户名或密码错误）
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid credentials
+
+  /api/files:
+    get:
+      tags:
+        - 文件操作相关接口
+      summary: 获取文件列表
+      description: |
+        - 如果 `currentdir` 为空，则获取用户登录后的根目录文件。
+        - 如果 `currentdir` 不为空，则获取指定目录下的文件。
+        - 所有请求需添加 Header -> `Authorization: Bearer <token>`
+        - todo : 需要支持分页
+      parameters:
+        - name: currentdir
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 目标目录的相对路径
+      responses:
+        '200':
+          description: 文件列表返回
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  files:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        Filename:
+                          type: string
+                        RelPath:
+                          type: string
+                        IsDir:
+                          type: boolean
+                        IsPublic:
+                          type: boolean
+                        Size:
+                          type: integer
+                        UpdatedAt:
+                          type: string
+                          format: date-time
+              examples:
+                根目录示例:
+                  value:
+                    files:
+                      - Filename: "admin"
+                        RelPath: "admin"
+                        IsDir: true
+                        IsPublic: false
+                        Size: 4096
+                        UpdatedAt: "2025-06-04T23:01:18.056Z"
+                      - Filename: "child"
+                        RelPath: "child"
+                        IsDir: true
+                        IsPublic: false
+                        Size: 4096
+                        UpdatedAt: "2025-06-04T23:01:18.064Z"
+                子目录示例:
+                  value:
+                    files:
+                      - Filename: "b.txt"
+                        RelPath: "admin/文档/b.txt"
+                        IsDir: false
+                        IsPublic: false
+                        Size: 0
+                        UpdatedAt: "2025-06-04T23:03:16.080Z"
+      security:
+        - bearerAuth: []
+
+  /api/typefiles:
+    get:
+      tags:
+        - 文件操作相关接口
+      summary: 按类型获取文件列表
+      description: |
+        - 根据文件类型获取当前用户的文件列表，支持分页查询
+        - 需携带 Bearer Token 进行认证
+        - 支持的文件类型：photo（图片）、video（视频）、document（文档）、audio（音频）等
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ["photo", "video", "document", "audio", "other"]
+          description: 文件类型
+          example: "photo"
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: 页码，从1开始
+          example: 1
+        - name: pagesize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 30
+          description: 每页数量，最大100
+          example: 30
+      responses:
+        '200':
+          description: 成功获取文件列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  files:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        ID:
+                          type: integer
+                          description: 文件ID
+                        CreatedAt:
+                          type: string
+                          format: date-time
+                          description: 创建时间
+                        UpdatedAt:
+                          type: string
+                          format: date-time
+                          description: 更新时间
+                        Filename:
+                          type: string
+                          description: 文件名
+                        RelPath:
+                          type: string
+                          description: 相对路径
+                        Owner:
+                          type: string
+                          description: 文件所有者
+                        IsPublic:
+                          type: boolean
+                          description: 是否为公共文件
+                        Size:
+                          type: integer
+                          format: int64
+                          description: 文件大小（字节）
+                        Type:
+                          type: string
+                          description: 文件类型
+              examples:
+                图片文件示例:
+                  value:
+                    files:
+                      - ID: 123
+                        CreatedAt: "2025-06-04T10:30:00Z"
+                        UpdatedAt: "2025-06-04T10:30:00Z"
+                        Filename: "sunset.jpg"
+                        RelPath: "admin/photos/sunset.jpg"
+                        Owner: "admin"
+                        IsPublic: false
+                        Size: 2048567
+                        Type: "photo"
+                      - ID: 124
+                        CreatedAt: "2025-06-04T11:15:00Z"
+                        UpdatedAt: "2025-06-04T11:15:00Z"
+                        Filename: "landscape.png"
+                        RelPath: "admin/photos/landscape.png"
+                        Owner: "admin"
+                        IsPublic: false
+                        Size: 1024000
+                        Type: "photo"
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid file type"
+        '401':
+          description: 未授权，需要有效的JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '500':
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to get files"
+      security:
+        - bearerAuth: []
+
+  /api/upload:
+    post:
+      tags:
+        - 文件操作相关接口
+      summary: 上传文件
+      description: 上传文件到指定目录，支持 multipart/form-data，需携带 Bearer Token
+      parameters:
+        - name: curdir
+          in: query
+          required: true
+          description: 当前目录路径，如 `admin/视频`
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 要上传的文件
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  path:
+                    type: string
+                    example: admin/视频/nas产品说明.docx
+        '401':
+          description: 未授权，缺失或无效的 Authorization 头
+      security:
+        - bearerAuth: []
+
+  /api/download:
+    get:
+      tags:
+        - 文件操作相关接口
+      summary: 下载文件
+      description: |
+        - 下载指定路径的文件
+        - 需携带 Bearer Token 进行认证
+        - 返回文件二进制流，浏览器会自动处理下载
+        - 管理员用户可以下载所有文件，普通用户只能下载自己的文件
+      parameters:
+        - name: relpath
+          in: query
+          required: true
+          schema:
+            type: string
+          description: 文件的相对路径
+          example: "admin/photos/sunset.jpg"
+      responses:
+        '200':
+          description: 文件下载成功
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+                description: 文件二进制流
+            image/*:
+              schema:
+                type: string
+                format: binary
+                description: 图片文件
+            video/*:
+              schema:
+                type: string
+                format: binary
+                description: 视频文件
+            audio/*:
+              schema:
+                type: string
+                format: binary
+                description: 音频文件
+            text/*:
+              schema:
+                type: string
+                format: binary
+                description: 文本文件
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+                description: PDF文件
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: "attachment; filename=sunset.jpg"
+              description: 文件下载头信息
+            Content-Type:
+              schema:
+                type: string
+                example: "image/jpeg"
+              description: 文件MIME类型
+            Content-Length:
+              schema:
+                type: integer
+                example: 2048567
+              description: 文件大小
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Missing relpath parameter"
+        '401':
+          description: 未授权，需要有效的JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '403':
+          description: 权限不足，无法访问该文件
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Access denied"
+        '404':
+          description: 文件不存在
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "File not found"
+        '500':
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+      security:
+        - bearerAuth: []
+
+  /api/mkdir:
+    post:
+      tags:
+        - 文件操作相关接口
+      summary: 创建目录
+      description: |
+        - 在指定路径下创建新目录
+        - 需携带 Bearer Token 进行认证
+        - 管理员用户不能在根目录直接创建文件夹
+        - 支持在用户目录或公共目录下创建子目录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rootDir
+                - curDir
+                - name
+              properties:
+                rootDir:
+                  type: string
+                  description: 根目录类型，空字符串表示用户目录，"public" 表示公共目录
+                  example: ""
+                curDir:
+                  type: string
+                  description: 当前目录的相对路径，空字符串表示根目录
+                  example: "admin/文档"
+                name:
+                  type: string
+                  description: 要创建的目录名称
+                  example: "新建文件夹"
+            examples:
+              用户目录示例:
+                value:
+                  rootDir: ""
+                  curDir: "admin/文档"
+                  name: "新建文件夹"
+              公共目录示例:
+                value:
+                  rootDir: "public"
+                  curDir: "documents"
+                  name: "shared_folder"
+              根目录示例:
+                value:
+                  rootDir: ""
+                  curDir: ""
+                  name: "documents"
+      responses:
+        '200':
+          description: 目录创建成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ok"
+              examples:
+                成功示例:
+                  value:
+                    message: "ok"
+        '400':
+          description: 请求参数错误或操作不被允许
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                参数错误:
+                  value:
+                    error: "Invalid JSON format"
+                权限限制:
+                  value:
+                    error: "not allowed root dir"
+        '401':
+          description: 未授权，需要有效的JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '403':
+          description: 权限不足，无法在指定目录创建文件夹
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Access denied"
+        '409':
+          description: 目录已存在
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Directory already exists"
+        '500':
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to create directory"
+      security:
+        - bearerAuth: []
+
+  /api/delete:
+    post:
+      tags:
+        - 文件操作相关接口
+      summary: 删除文件或目录
+      description: |
+        - 删除指定的文件或目录（支持批量删除）
+        - 需携带 Bearer Token 进行认证
+        - 支持删除文件和目录，使用递归删除
+        - 同时会删除相关的缩略图文件和数据库记录
+        - 管理员可以删除所有文件，普通用户只能删除自己的文件
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - files
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                  description: 要删除的文件或目录的相对路径数组
+                  example: ["admin/文档/example.txt", "admin/图片/photo.jpg"]
+                  minItems: 1
+            examples:
+              单个文件删除:
+                value:
+                  files: ["admin/文档/example.txt"]
+              批量文件删除:
+                value:
+                  files: 
+                    - "admin/文档/document1.pdf"
+                    - "admin/图片/photo1.jpg"
+                    - "admin/视频/video1.mp4"
+              目录删除:
+                value:
+                  files: ["admin/文档/old_folder"]
+              混合删除:
+                value:
+                  files: 
+                    - "admin/文档/report.docx"
+                    - "admin/图片/vacation_photos"
+      responses:
+        '200':
+          description: 文件删除成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ok"
+              examples:
+                成功删除:
+                  value:
+                    message: "ok"
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                参数格式错误:
+                  value:
+                    error: "Invalid JSON format"
+                空文件列表:
+                  value:
+                    error: "Files array cannot be empty"
+        '401':
+          description: 未授权，需要有效的JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '403':
+          description: 权限不足，无法删除指定文件
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Access denied"
+        '404':
+          description: 文件或目录不存在
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "File not found"
+        '500':
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to delete files"
+      security:
+        - bearerAuth: []
+
+  /api/dlna/list:
+    get:
+      tags:
+        - DLNA设备控制相关接口
+      summary: 获取DLNA设备列表
+      description: |
+        - 获取可用的DLNA媒体渲染设备列表
+        - 需携带 Bearer Token 进行认证
+        - 从Jellyfin服务器获取当前活跃的DLNA设备
+        - 自动添加"本机"作为可选播放设备
+        - 用于媒体投屏功能
+      responses:
+        '200':
+          description: 成功获取DLNA设备列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dlna:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        DeviceName:
+                          type: string
+                          description: DLNA设备名称
+                          example: "Living Room TV"
+                        Id:
+                          type: string
+                          description: DLNA设备唯一标识符
+                          example: "uuid:12345678-1234-1234-1234-123456789012"
+              examples:
+                有设备时:
+                  value:
+                    dlna:
+                      - DeviceName: "Living Room TV"
+                        Id: "uuid:12345678-1234-1234-1234-123456789012"
+                      - DeviceName: "Samsung Smart TV"
+                        Id: "uuid:87654321-4321-4321-4321-210987654321"
+                      - DeviceName: "本机"
+                        Id: "web"
+                无外部设备时:
+                  value:
+                    dlna:
+                      - DeviceName: "本机"
+                        Id: "web"
+                空设备列表:
+                  value:
+                    dlna: []
+        '401':
+          description: 未授权，需要有效的JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '500':
+          description: 服务器内部错误或Jellyfin服务连接失败
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                Jellyfin连接失败:
+                  value:
+                    error: "Failed to connect to Jellyfin server"
+                服务器错误:
+                  value:
+                    error: "Internal server error"
+        '503':
+          description: Jellyfin服务不可用
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Jellyfin service unavailable"
+      security:
+        - bearerAuth: []
+
+  /api/dlna/play:
+    post:
+      tags:
+        - DLNA设备控制相关接口
+      summary: 在DLNA设备上播放媒体文件
+      description: |
+        - 在指定的DLNA设备上播放媒体文件
+        - 需携带 Bearer Token 进行认证
+        - 通过Jellyfin服务器进行媒体投屏
+        - 自动将文件路径转换为Jellyfin ItemID
+        - 支持视频、音频等多媒体文件播放
+        - 管理员可以播放所有文件，普通用户只能播放自己的文件
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - relpath
+                - dlna
+              properties:
+                relpath:
+                  type: string
+                  description: 媒体文件的相对路径
+                  example: "admin/视频/movie.mp4"
+                dlna:
+                  type: string
+                  description: 目标DLNA设备的ID（从 /api/dlna/list 获取）
+                  example: "uuid:12345678-1234-1234-1234-123456789012"
+            examples:
+              播放视频文件:
+                value:
+                  relpath: "admin/视频/vacation.mp4"
+                  dlna: "uuid:12345678-1234-1234-1234-123456789012"
+              播放音频文件:
+                value:
+                  relpath: "admin/音乐/song.mp3"
+                  dlna: "uuid:87654321-4321-4321-4321-210987654321"
+              本机播放:
+                value:
+                  relpath: "admin/视频/demo.avi"
+                  dlna: "web"
+      responses:
+        '200':
+          description: 成功开始播放
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ok"
+              examples:
+                播放成功:
+                  value:
+                    message: "ok"
+        '400':
+          description: 请求参数错误或播放失败
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                参数格式错误:
+                  value:
+                    error: "Invalid JSON format"
+                文件未找到:
+                  value:
+                    error: "no itemid"
+                Jellyfin通信失败:
+                  value:
+                    error: "Failed to communicate with Jellyfin server"
+        '401':
+          description: 未授权，需要有效的JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '403':
+          description: 权限不足，无法播放指定文件
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Access denied"
+        '404':
+          description: 文件不存在或DLNA设备不可用
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                文件不存在:
+                  value:
+                    error: "File not found"
+                设备不在线:
+                  value:
+                    error: "DLNA device not available"
+        '500':
+          description: 服务器内部错误或Jellyfin服务故障
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                Jellyfin服务错误:
+                  value:
+                    error: "Jellyfin service error"
+                服务器错误:
+                  value:
+                    error: "Internal server error"
+        '503':
+          description: Jellyfin服务不可用
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Jellyfin service unavailable"
+      security:
+        - bearerAuth: []
+
+  /api/dlna/controll:
+    post:
+      tags:
+        - DLNA设备控制相关接口
+      summary: 控制DLNA设备播放
+      description: |
+        - 控制DLNA设备的播放状态和音量
+        - 需携带 Bearer Token 进行认证
+        - 通过Jellyfin服务器发送控制命令
+        - 支持播放控制（暂停、恢复、快进、快退）和音量调节
+        - 实时控制正在播放的媒体内容
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - dlna
+                - cmd
+              properties:
+                dlna:
+                  type: string
+                  description: DLNA设备的ID（从 /api/dlna/list 获取）
+                  example: "uuid:12345678-1234-1234-1234-123456789012"
+                cmd:
+                  type: string
+                  enum: ["Pause", "Unpause", "FastForward", "Rewind", "SetVolume"]
+                  description: 控制命令类型
+                  example: "Pause"
+                val:
+                  type: integer
+                  description: 数值参数（SetVolume命令时必需，表示音量百分比0-100）
+                  minimum: 0
+                  maximum: 100
+                  example: 50
+            examples:
+              暂停播放:
+                value:
+                  dlna: "uuid:12345678-1234-1234-1234-123456789012"
+                  cmd: "Pause"
+              恢复播放:
+                value:
+                  dlna: "uuid:12345678-1234-1234-1234-123456789012"
+                  cmd: "Unpause"
+              快进:
+                value:
+                  dlna: "uuid:12345678-1234-1234-1234-123456789012"
+                  cmd: "FastForward"
+              快退:
+                value:
+                  dlna: "uuid:12345678-1234-1234-1234-123456789012"
+                  cmd: "Rewind"
+              设置音量:
+                value:
+                  dlna: "uuid:12345678-1234-1234-1234-123456789012"
+                  cmd: "SetVolume"
+                  val: 75
+      responses:
+        '200':
+          description: 控制命令执行成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ok"
+              examples:
+                命令成功:
+                  value:
+                    message: "ok"
+        '400':
+          description: 请求参数错误或命令执行失败
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                参数格式错误:
+                  value:
+                    error: "Invalid JSON format"
+                未知命令:
+                  value:
+                    error: "Unknown command"
+                音量参数缺失:
+                  value:
+                    error: "Volume value required for SetVolume command"
+                Jellyfin通信失败:
+                  value:
+                    error: "Failed to communicate with Jellyfin server"
+        '401':
+          description: 未授权，需要有效的JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '404':
+          description: DLNA设备不存在或不在线
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                设备不存在:
+                  value:
+                    error: "DLNA device not found"
+                设备离线:
+                  value:
+                    error: "Device is offline"
+        '500':
+          description: 服务器内部错误或Jellyfin服务故障
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                Jellyfin服务错误:
+                  value:
+                    error: "Jellyfin service error"
+                服务器错误:
+                  value:
+                    error: "Internal server error"
+        '503':
+          description: Jellyfin服务不可用
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Jellyfin service unavailable"
+      security:
+        - bearerAuth: []
+
+  /api/dlna/thumb:
+    get:
+      tags:
+        - DLNA设备控制相关接口
+      summary: 获取DLNA缩略图
+      description: |
+        - 获取媒体文件的缩略图（通过Jellyfin服务器）
+        - 需携带 Bearer Token 进行认证
+        - 自动将文件路径转换为Jellyfin ItemID
+        - 从Jellyfin服务器获取媒体文件的主要封面图像
+        - 支持缓存机制，提高加载速度
+        - 管理员可以获取所有文件的缩略图，普通用户只能获取自己的文件缩略图
+      parameters:
+        - name: relpath
+          in: query
+          required: true
+          schema:
+            type: string
+          description: 媒体文件的相对路径
+          example: "admin/视频/movie.mp4"
+      responses:
+        '200':
+          description: 成功返回缩略图
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+                description: JPEG格式的缩略图
+            image/png:
+              schema:
+                type: string
+                format: binary
+                description: PNG格式的缩略图
+            image/webp:
+              schema:
+                type: string
+                format: binary
+                description: WebP格式的缩略图
+            image/*:
+              schema:
+                type: string
+                format: binary
+                description: 其他格式的图片缩略图
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: "public, max-age=86400"
+              description: 缓存控制头，缓存24小时
+            Content-Type:
+              schema:
+                type: string
+                example: "image/jpeg"
+              description: 图片MIME类型
+            Content-Length:
+              schema:
+                type: integer
+                example: 25600
+              description: 图片文件大小
+        '400':
+          description: 请求参数错误或缩略图获取失败
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                参数缺失:
+                  value:
+                    error: "Missing relpath parameter"
+                文件未找到:
+                  value:
+                    error: "File not found in Jellyfin"
+                缩略图获取失败:
+                  value:
+                    error: "thumb get fail"
+                内容格式错误:
+                  value:
+                    error: "thumb content invalid"
+        '401':
+          description: 未授权，需要有效的JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '403':
+          description: 权限不足，无法获取指定文件的缩略图
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Access denied"
+        '404':
+          description: 文件不存在或Jellyfin中无该文件记录
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                文件不存在:
+                  value:
+                    error: "File not found"
+                Jellyfin无记录:
+                  value:
+                    error: "No record found in Jellyfin"
+        '500':
+          description: 服务器内部错误或Jellyfin服务故障
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                Jellyfin服务错误:
+                  value:
+                    error: "Jellyfin service error"
+                服务器错误:
+                  value:
+                    error: "Internal server error"
+        '503':
+          description: Jellyfin服务不可用
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Jellyfin service unavailable"
+      security:
+        - bearerAuth: []
+
+  /api/dlna2/list:
+    get:
+      tags:
+        - DLNA2设备控制相关接口
+      summary: 获取DLNA2设备列表
+      description: |
+        - 通过UPnP协议直接发现可用的DLNA媒体渲染设备
+        - 需携带 Bearer Token 进行认证
+        - 使用原生UPnP/DLNA协议，不依赖Jellyfin服务器
+        - 自动扫描网络中的MediaRenderer设备
+        - 自动添加"本机"作为可选播放设备
+        - 适用于直接DLNA投屏功能
+      responses:
+        '200':
+          description: 成功获取DLNA2设备列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dlna:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        DeviceName:
+                          type: string
+                          description: DLNA设备友好名称
+                          example: "Samsung Smart TV"
+                        Id:
+                          type: string
+                          description: DLNA设备唯一设备标识符(UDN)
+                          example: "uuid:12345678-1234-1234-1234-123456789012"
+              examples:
+                有设备时:
+                  value:
+                    dlna:
+                      - DeviceName: "Samsung Smart TV"
+                        Id: "uuid:12345678-1234-1234-1234-123456789012"
+                      - DeviceName: "LG WebOS TV"
+                        Id: "uuid:87654321-4321-4321-4321-210987654321"
+                      - DeviceName: "Sony Bravia"
+                        Id: "uuid:11111111-2222-3333-4444-555555555555"
+                      - DeviceName: "本机"
+                        Id: "web"
+                无外部设备时:
+                  value:
+                    dlna:
+                      - DeviceName: "本机"
+                        Id: "web"
+                空设备列表:
+                  value:
+                    dlna: []
+        '400':
+          description: UPnP设备发现失败
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                UPnP发现失败:
+                  value:
+                    error: "Failed to discover UPnP devices"
+                网络连接问题:
+                  value:
+                    error: "Network connection error"
+        '401':
+          description: 未授权，需要有效的JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '500':
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                UPnP库错误:
+                  value:
+                    error: "UPnP library initialization failed"
+                服务器错误:
+                  value:
+                    error: "Internal server error"
+        '503':
+          description: UPnP服务不可用
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "UPnP service unavailable"
+      security:
+        - bearerAuth: []
+
+  /api/dlna2/play:
+    post:
+      tags:
+        - DLNA2设备控制相关接口
+      summary: 在DLNA2设备上播放媒体文件
+      description: |
+        - 通过原生UPnP/DLNA协议在指定设备上播放媒体文件
+        - 需携带 Bearer Token 进行认证
+        - 不依赖Jellyfin服务器，直接使用UPnP协议
+        - 通过本服务器的预览端点提供媒体流
+        - 支持视频、音频等多媒体文件播放
+        - 管理员可以播放所有文件，普通用户只能播放自己的文件
+        - 自动获取本机IP地址构建媒体URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - relpath
+                - dlna
+              properties:
+                relpath:
+                  type: string
+                  description: 媒体文件的相对路径
+                  example: "admin/视频/movie.mp4"
+                dlna:
+                  type: string
+                  description: 目标DLNA设备的UDN（从 /api/dlna2/list 获取）
+                  example: "uuid:12345678-1234-1234-1234-123456789012"
+            examples:
+              播放视频文件:
+                value:
+                  relpath: "admin/视频/vacation.mp4"
+                  dlna: "uuid:12345678-1234-1234-1234-123456789012"
+              播放音频文件:
+                value:
+                  relpath: "admin/音乐/song.mp3"
+                  dlna: "uuid:87654321-4321-4321-4321-210987654321"
+              播放存储路径文件:
+                value:
+                  relpath: "storage/media/demo.avi"
+                  dlna: "uuid:11111111-2222-3333-4444-555555555555"
+      responses:
+        '200':
+          description: 成功开始播放
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ok"
+              examples:
+                播放成功:
+                  value:
+                    message: "ok"
+        '400':
+          description: 请求参数错误或播放失败
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                参数格式错误:
+                  value:
+                    error: "Invalid JSON format"
+                设备未找到:
+                  value:
+                    error: "avt not found"
+                UPnP协议错误:
+                  value:
+                    error: "UPnP SetAVTransportURI failed"
+        '401':
+          description: 未授权，需要有效的JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '403':
+          description: 权限不足，无法播放指定文件
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Access denied"
+        '404':
+          description: 文件不存在或DLNA设备不可用
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                文件不存在:
+                  value:
+                    error: "File not found"
+                设备离线:
+                  value:
+                    error: "DLNA device not available"
+        '500':
+          description: 服务器内部错误或UPnP协议故障
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                UPnP协议错误:
+                  value:
+                    error: "UPnP protocol error"
+                网络连接失败:
+                  value:
+                    error: "Network connection failed"
+                服务器错误:
+                  value:
+                    error: "Internal server error"
+        '503':
+          description: UPnP服务不可用
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "UPnP service unavailable"
+      security:
+        - bearerAuth: []
+
+  /api/dlna2/controll:
+    post:
+      tags:
+        - DLNA2设备控制相关接口
+      summary: 控制DLNA2设备播放
+      description: |
+        - 通过原生UPnP/DLNA协议控制设备的播放状态和音量
+        - 需携带 Bearer Token 进行认证
+        - 不依赖Jellyfin服务器，直接使用UPnP协议
+        - 支持播放控制（暂停、恢复、停止、快进、快退）和音量调节
+        - 实时控制正在播放的媒体内容
+        - 快进/快退固定为10秒间隔
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - dlna
+                - cmd
+              properties:
+                dlna:
+                  type: string
+                  description: DLNA设备的UDN（从 /api/dlna2/list 获取）
+                  example: "uuid:12345678-1234-1234-1234-123456789012"
+                cmd:
+                  type: string
+                  enum: ["Pause", "Unpause", "Stop", "FastForward", "Rewind", "SetVolume"]
+                  description: 控制命令类型
+                  example: "Pause"
+                val:
+                  type: integer
+                  description: 数值参数（SetVolume命令时必需，表示音量百分比0-100）
+                  minimum: 0
+                  maximum: 100
+                  example: 50
+            examples:
+              暂停播放:
+                value:
+                  dlna: "uuid:12345678-1234-1234-1234-123456789012"
+                  cmd: "Pause"
+              恢复播放:
+                value:
+                  dlna: "uuid:12345678-1234-1234-1234-123456789012"
+                  cmd: "Unpause"
+              停止播放:
+                value:
+                  dlna: "uuid:12345678-1234-1234-1234-123456789012"
+                  cmd: "Stop"
+              快进10秒:
+                value:
+                  dlna: "uuid:12345678-1234-1234-1234-123456789012"
+                  cmd: "FastForward"
+              快退10秒:
+                value:
+                  dlna: "uuid:12345678-1234-1234-1234-123456789012"
+                  cmd: "Rewind"
+              设置音量:
+                value:
+                  dlna: "uuid:12345678-1234-1234-1234-123456789012"
+                  cmd: "SetVolume"
+                  val: 75
+      responses:
+        '200':
+          description: 控制命令执行成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ok"
+              examples:
+                命令成功:
+                  value:
+                    message: "ok"
+        '400':
+          description: 请求参数错误或命令执行失败
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                参数格式错误:
+                  value:
+                    error: "Invalid JSON format"
+                设备未找到:
+                  value:
+                    error: "avt not found"
+                未知命令:
+                  value:
+                    error: "Unknown command"
+                UPnP协议错误:
+                  value:
+                    error: "UPnP command failed"
+        '401':
+          description: 未授权，需要有效的JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '404':
+          description: DLNA设备不存在或不在线
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                设备不存在:
+                  value:
+                    error: "DLNA device not found"
+                设备离线:
+                  value:
+                    error: "Device is offline"
+        '500':
+          description: 服务器内部错误或UPnP协议故障
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                UPnP服务错误:
+                  value:
+                    error: "UPnP service error"
+                音量控制失败:
+                  value:
+                    error: "Volume control failed"
+                服务器错误:
+                  value:
+                    error: "Internal server error"
+        '503':
+          description: UPnP服务不可用
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "UPnP service unavailable"
+      security:
+        - bearerAuth: []
+
+  /api/usb/list:
+    get:
+      tags:
+        - USB设备管理相关接口
+      summary: 获取已挂载的USB设备列表
+      description: |
+        - 获取当前系统中已挂载的USB设备列表
+        - 需携带 Bearer Token 进行认证
+        - 返回所有已挂载的USB设备信息
+      responses:
+        '200':
+          description: 成功获取USB设备列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "USB设备列表获取成功"
+                  data:
+                    type: string
+                    example: "请使用 /api/usb/info 接口获取详细信息"
+        '401':
+          description: 未授权，需要有效的JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '500':
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "USB管理器未初始化"
+      security:
+        - bearerAuth: []
+
+  /api/usb/info:
+    get:
+      tags:
+        - USB设备管理相关接口
+      summary: 获取USB挂载信息
+      description: |
+        - 获取USB管理器的基本信息和挂载配置
+        - 需携带 Bearer Token 进行认证
+        - 返回USB挂载的基础目录和说明信息
+      responses:
+        '200':
+          description: 成功获取USB挂载信息
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "USB管理器运行正常"
+                  mount_base:
+                    type: string
+                    example: "./storage/usb"
+                  description:
+                    type: string
+                    example: "USB设备将自动挂载到 ./storage/usb/ 目录下"
+        '401':
+          description: 未授权，需要有效的JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '500':
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "USB管理器未初始化"
+      security:
+        - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

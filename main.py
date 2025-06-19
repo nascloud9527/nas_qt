@@ -1,0 +1,16 @@
+import sys
+from PySide6.QtWidgets import QApplication
+from PySide6.QtQml import QQmlApplicationEngine
+from viewmodels.login_vm import LoginViewModel
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    engine = QQmlApplicationEngine()
+
+    login_vm = LoginViewModel()
+    engine.rootContext().setContextProperty("loginVM", login_vm)
+
+    engine.load("ui/MainWindow.qml")
+    if not engine.rootObjects():
+        sys.exit(-1)
+    sys.exit(app.exec()) 
