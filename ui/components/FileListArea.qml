@@ -159,11 +159,57 @@ Rectangle {
             Layout.fillHeight: true
             visible: !fileVM.is_loading && fileVM.error_message === ""
 
+            // 空数据提示
+            Rectangle {
+                anchors.fill: parent
+                color: themeManager.backgroundColor
+                visible: fileVM.file_list.length === 0
+
+                ColumnLayout {
+                    anchors.centerIn: parent
+                    spacing: 16
+
+                    // 空数据图标
+                    Rectangle {
+                        Layout.preferredWidth: 64
+                        Layout.preferredHeight: 64
+                        radius: 32
+                        color: themeManager.surfaceColor
+                        border.color: themeManager.dividerColor
+                        border.width: 2
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "📁"
+                            font.pixelSize: 28
+                        }
+                    }
+
+                    // 空数据文本
+                    // Text {
+                    //     text: "No data"
+                    //     font.pixelSize: 16
+                    //     font.weight: Font.Medium
+                    //     color: themeManager.textSecondaryColor
+                    //     horizontalAlignment: Text.AlignHCenter
+                    // }
+
+                    // 提示文本
+                    Text {
+                        text: "此文件夹为空"
+                        font.pixelSize: 12
+                        color: themeManager.textSecondaryColor
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+                }
+            }
+
             ListView {
                 id: fileListView
                 anchors.fill: parent
                 model: fileVM.file_list
                 spacing: 1
+                visible: fileVM.file_list.length > 0
 
                 delegate: Rectangle {
                     width: fileListView.width
