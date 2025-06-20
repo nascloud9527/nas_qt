@@ -6,6 +6,27 @@ Item {
     id: mainPage
     anchors.fill: parent
 
+    // 处理文件打开信号
+    Connections {
+        target: fileVM
+        
+        function onFileOpened(filePath) {
+            console.log("文件打开:", filePath)
+            // TODO: 实现文件打开逻辑，比如调用系统默认程序打开文件
+            // 这里可以添加文件类型判断和相应的处理逻辑
+        }
+        
+        function onDirectoryChanged(newDirectory) {
+            console.log("目录改变:", newDirectory)
+            // 目录改变时的处理逻辑
+        }
+        
+        function onContextMenuRequested(x, y, index) {
+            console.log("右键菜单请求:", x, y, index)
+            // 右键菜单的处理逻辑
+        }
+    }
+
     Rectangle {
         anchors.fill: parent
         color: themeManager.backgroundColor
