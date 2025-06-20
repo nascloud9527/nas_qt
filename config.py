@@ -15,8 +15,8 @@ class Config:
     def _load_config(self):
         """加载配置"""
         # 默认配置
-        self.file_base_path = "/home/lanyang/nasserver/FileManager/storage"
-        self.api_base_url = "http://192.168.1.102:8080"
+        self.file_base_path = ""
+        self.api_base_url = ""
         
         # 尝试从环境变量加载
         env_file_path = os.getenv("FILE_BASE_PATH")
