@@ -57,8 +57,33 @@ Item {
             // 显示创建文件夹结果消息
             if (success) {
                 showMessage("创建成功", message, "success")
+                // 成功时关闭对话框
+                if (createFolderDialogInstance) {
+                    createFolderDialogInstance.close()
+                    createFolderDialogInstance.destroy()
+                    createFolderDialogInstance = null
+                }
             } else {
-                showMessage("创建失败", message, "error")
+                // 失败时显示错误信息，不关闭对话框
+                if (createFolderDialogInstance) {
+                    // 尝试解析JSON格式的错误信息
+                    var errorMsg = message
+                    try {
+                        if (message.startsWith('{') && message.endsWith('}')) {
+                            var errorObj = JSON.parse(message)
+                            if (errorObj.error) {
+                                errorMsg = errorObj.error
+                            }
+                        }
+                    } catch (e) {
+                        console.log("解析错误信息失败:", e)
+                        // 如果解析失败，使用原始消息
+                        errorMsg = message
+                    }
+                    createFolderDialogInstance.errorMessage = errorMsg
+                } else {
+                    showMessage("创建失败", message, "error")
+                }
             }
         }
         
@@ -82,6 +107,9 @@ Item {
         }
     }
 
+    // 保存对话框实例的引用
+    property var createFolderDialogInstance: null
+
     // 显示创建文件夹对话框
     function showCreateFolderDialog() {
         console.log("showCreateFolderDialog 被调用")
@@ -91,18 +119,23 @@ Item {
         if (dialogComponent.status === Component.Ready) {
             console.log("对话框组件创建成功")
             var dialog = dialogComponent.createObject(mainPage, {
-                "folderName": "新建文件夹"
+                "folderName": "新建文件夹",
+                "errorMessage": ""  // 初始化错误信息为空
             })
+            
+            // 保存对话框实例引用
+            createFolderDialogInstance = dialog
             
             dialog.folderCreated.connect(function(folderName) {
                 console.log("用户确认创建文件夹:", folderName)
                 fileVM.create_folder(folderName)
-                dialog.destroy()
+                // 不在这里关闭对话框，让onCreateFolderFinished处理
             })
             
             dialog.dialogCancelled.connect(function() {
                 console.log("用户取消创建文件夹")
                 dialog.destroy()
+                createFolderDialogInstance = null
             })
             
             console.log("尝试打开对话框")

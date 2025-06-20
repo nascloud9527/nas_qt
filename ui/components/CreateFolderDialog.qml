@@ -6,13 +6,14 @@ Dialog {
     id: createFolderDialog
     modal: true
     width: 400
-    height: 200
+    height: 220  // 增加高度以容纳错误信息
     z: 1000
     
     // 居中定位
     anchors.centerIn: parent
     
     property string folderName: ""
+    property string errorMessage: ""  // 添加错误信息属性
     signal folderCreated(string name)
     signal dialogCancelled()
     
@@ -77,6 +78,10 @@ Dialog {
                 
                 onTextChanged: {
                     createFolderDialog.folderName = text
+                    // 当用户开始输入时，清除错误信息
+                    if (text !== "") {
+                        createFolderDialog.errorMessage = ""
+                    }
                 }
                 
                 Component.onCompleted: {
@@ -88,7 +93,7 @@ Dialog {
                 Keys.onReturnPressed: {
                     if (createFolderDialog.folderName.trim() !== "") {
                         createFolderDialog.folderCreated(createFolderDialog.folderName.trim())
-                        createFolderDialog.close()
+                        // 注意：这里不关闭对话框，让调用者决定是否关闭
                     }
                 }
                 
@@ -109,6 +114,17 @@ Dialog {
                 verticalAlignment: Text.AlignVCenter
                 visible: folderNameInput.text === ""
             }
+        }
+        
+        // 错误信息显示
+        Text {
+            id: errorText
+            Layout.fillWidth: true
+            text: createFolderDialog.errorMessage
+            font.pixelSize: 12
+            color: "#FF4444"  // 红色错误文本
+            visible: createFolderDialog.errorMessage !== ""
+            wrapMode: Text.WordWrap
         }
         
         // 按钮
@@ -173,7 +189,7 @@ Dialog {
                 
                 onClicked: {
                     createFolderDialog.folderCreated(folderNameInput.text.trim())
-                    createFolderDialog.close()
+                    // 注意：这里不关闭对话框，让调用者决定是否关闭
                 }
             }
         }
