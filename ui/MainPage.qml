@@ -6,6 +6,22 @@ Item {
     id: mainPage
     anchors.fill: parent
 
+    // 添加调试信息
+    Component.onCompleted: {
+        console.log("MainPage 加载完成")
+        if (fileVM) {
+            console.log("fileVM 在 MainPage 中可用")
+            console.log("当前目录:", fileVM.current_directory)
+        } else {
+            console.log("fileVM 在 MainPage 中不可用")
+        }
+        if (themeManager) {
+            console.log("themeManager 在 MainPage 中可用")
+        } else {
+            console.log("themeManager 在 MainPage 中不可用")
+        }
+    }
+
     // 处理文件打开信号
     Connections {
         target: fileVM
@@ -52,7 +68,7 @@ Item {
             // 2. 工具栏
             Loader {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 50
+                Layout.preferredHeight: 90
                 source: "components/ToolBar.qml"
             }
 

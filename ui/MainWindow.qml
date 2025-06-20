@@ -38,4 +38,15 @@ ApplicationWindow {
             }
         }
     }
+    
+    // 确保对象在页面切换时保持可用
+    Component.onCompleted: {
+        // 确保fileVM和themeManager在全局上下文中可用
+        if (fileVM) {
+            console.log("fileVM 已注册")
+        }
+        if (themeManager) {
+            console.log("themeManager 已注册")
+        }
+    }
 } 

@@ -150,6 +150,21 @@ class FileViewModel(QObject):
             print(f"无法打开文件 {relative_path}: {e}")
             # 这里可以发出错误信号给UI显示
     
+    @Slot()
+    def go_to_parent_directory(self):
+        """返回上一级目录"""
+        # 主页就是用户名
+        if self._current_directory == self._current_username or not self._current_directory:
+            return  # 已经在主页或根目录
+        parent_directory = self._file_api.get_parent_directory(self._current_directory)
+        self.load_file_list(parent_directory)
+        self.directoryChanged.emit(parent_directory)
+    
+    @Slot()
+    def can_go_to_parent(self) -> bool:
+        """检查是否可以返回上一级目录"""
+        return bool(self._current_directory)
+    
     @Slot(int, int, int)
     def show_context_menu(self, x: int, y: int, index: int):
         """显示右键菜单"""
@@ -178,4 +193,8 @@ class FileViewModel(QObject):
     
     @Property(str, notify=errorChanged)
     def error_message(self):
-        return self._error_message 
+        return self._error_message
+    
+    @Property(bool, notify=fileListChanged)
+    def is_at_home(self):
+        return self._current_directory == self._current_username or not self._current_directory 

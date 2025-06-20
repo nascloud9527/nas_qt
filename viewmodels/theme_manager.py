@@ -20,7 +20,9 @@ class ThemeManager(QObject):
             "hoverColor": "#F0F0F0",
             "errorColor": "#F44336",
             "successColor": "#4CAF50",
-            "warningColor": "#FF9800"
+            "warningColor": "#FF9800",
+            "disabledColor": "#E0E0E0",
+            "textDisabledColor": "#9E9E9E"
         }
         
         # 深色主题颜色
@@ -36,7 +38,9 @@ class ThemeManager(QObject):
             "hoverColor": "#2D2D2D",
             "errorColor": "#CF6679",
             "successColor": "#4CAF50",
-            "warningColor": "#FFB74D"
+            "warningColor": "#FFB74D",
+            "disabledColor": "#424242",
+            "textDisabledColor": "#666666"
         }
     
     def getColor(self, colorName):
@@ -100,4 +104,12 @@ class ThemeManager(QObject):
     
     @Property(str, notify=themeChanged)
     def warningColor(self):
-        return self.getColor("warningColor") 
+        return self.getColor("warningColor")
+    
+    @Property(str, notify=themeChanged)
+    def disabledColor(self):
+        return self.getColor("disabledColor")
+    
+    @Property(str, notify=themeChanged)
+    def textDisabledColor(self):
+        return self.getColor("textDisabledColor") 

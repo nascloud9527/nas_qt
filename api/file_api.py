@@ -154,4 +154,28 @@ class FileAPI:
             "gz": "压缩包"
         }
         
-        return type_mapping.get(ext, "其他") 
+        return type_mapping.get(ext, "其他")
+    
+    def get_parent_directory(self, current_directory: str) -> str:
+        """
+        获取父目录路径
+        
+        Args:
+            current_directory: 当前目录路径
+            
+        Returns:
+            str: 父目录路径，如果已经是根目录则返回空字符串
+        """
+        if not current_directory:
+            return ""
+        
+        # 移除末尾的斜杠
+        current_directory = current_directory.rstrip('/')
+        
+        # 如果路径为空，说明已经是根目录
+        if not current_directory:
+            return ""
+        
+        # 获取父目录
+        parent_directory = '/'.join(current_directory.split('/')[:-1])
+        return parent_directory 
