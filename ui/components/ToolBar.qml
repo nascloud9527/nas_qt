@@ -98,14 +98,18 @@ Rectangle {
 
             // 上传文件按钮
             Button {
-                text: "上传文件"
+                id: uploadButton
+                text: fileVM && fileVM.is_uploading ? "上传中..." : "上传文件"
                 Layout.preferredWidth: 100
                 Layout.preferredHeight: 36
+                enabled: fileVM && !fileVM.is_uploading
                 
                 background: Rectangle {
                     radius: 18
-                    color: parent.pressed ? themeManager.primaryDarkColor : themeManager.primaryColor
-                    border.color: "#40000000"
+                    color: parent.enabled ? 
+                           (parent.pressed ? themeManager.primaryDarkColor : themeManager.primaryColor) :
+                           themeManager.disabledColor
+                    border.color: parent.enabled ? "#40000000" : themeManager.disabledColor
                     border.width: 1
                 }
                 
@@ -113,13 +117,18 @@ Rectangle {
                     text: parent.text
                     font.pixelSize: 12
                     font.weight: Font.Medium
-                    color: "white"
+                    color: parent.enabled ? "white" : themeManager.textDisabledColor
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
                 
                 onClicked: {
                     console.log("点击上传文件")
+                    if (fileVM) {
+                        fileVM.select_file_for_upload()
+                    } else {
+                        console.log("fileVM不可用")
+                    }
                 }
             }
 

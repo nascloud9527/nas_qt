@@ -17,6 +17,8 @@ class FileViewModel(QObject):
     fileOpened = Signal(str)  # 文件打开信号
     directoryChanged = Signal(str)  # 目录改变信号
     contextMenuRequested = Signal(int, int, int)  # 右键菜单信号 (x, y, index)
+    uploadProgressChanged = Signal(int)  # 上传进度信号
+    uploadFinished = Signal(bool, str)  # 上传完成信号 (success, message)
     
     def __init__(self):
         super().__init__()
@@ -26,6 +28,8 @@ class FileViewModel(QObject):
         self._current_username = ""  # 当前登录的用户名
         self._is_loading = False
         self._error_message = ""
+        self._upload_progress = 0
+        self._is_uploading = False
     
     @Slot(str)
     def set_token(self, token: str):
@@ -178,6 +182,63 @@ class FileViewModel(QObject):
             current_selected = self._file_list[index].get("selected", False)
             self._file_list[index]["selected"] = not current_selected
             self.fileListChanged.emit()
+    
+    @Slot(str)
+    def upload_file(self, file_path: str):
+        """上传文件到当前目录"""
+        if not file_path or not os.path.exists(file_path):
+            self.uploadFinished.emit(False, "文件不存在")
+            return
+        
+        self._is_uploading = True
+        self._upload_progress = 0
+        self.uploadProgressChanged.emit(0)
+        
+        # 调用API上传文件
+        result = self._file_api.upload_file(file_path, self._current_directory)
+        
+        if result["success"]:
+            self._upload_progress = 100
+            self.uploadProgressChanged.emit(100)
+            self.uploadFinished.emit(True, "文件上传成功")
+            # 上传成功后刷新文件列表
+            self.refresh_file_list()
+        else:
+            error_msg = result.get("error", "上传失败")
+            self.uploadFinished.emit(False, error_msg)
+        
+        self._is_uploading = False
+        self.uploadProgressChanged.emit(0)  # 重置进度
+    
+    @Slot()
+    def select_file_for_upload(self):
+        """选择文件进行上传"""
+        from PySide6.QtWidgets import QFileDialog, QApplication
+        
+        # 获取当前应用实例
+        app = QApplication.instance()
+        if not app:
+            self.uploadFinished.emit(False, "无法获取应用程序实例")
+            return
+        
+        # 打开文件选择对话框
+        file_path, _ = QFileDialog.getOpenFileName(
+            None,
+            "选择要上传的文件",
+            "",
+            "所有文件 (*.*)"
+        )
+        
+        if file_path:
+            self.upload_file(file_path)
+    
+    @Property(int, notify=uploadProgressChanged)
+    def upload_progress(self):
+        return self._upload_progress
+    
+    @Property(bool, notify=uploadProgressChanged)
+    def is_uploading(self):
+        return self._is_uploading
     
     @Property(list, notify=fileListChanged)
     def file_list(self):

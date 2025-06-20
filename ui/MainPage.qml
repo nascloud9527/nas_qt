@@ -41,6 +41,30 @@ Item {
             console.log("右键菜单请求:", x, y, index)
             // 右键菜单的处理逻辑
         }
+        
+        function onUploadFinished(success, message) {
+            console.log("上传完成:", success, message)
+            // 显示上传结果消息
+            if (success) {
+                showMessage("上传成功", message, "success")
+            } else {
+                showMessage("上传失败", message, "error")
+            }
+        }
+    }
+
+    // 消息提示组件
+    function showMessage(title, message, type) {
+        // 创建消息提示
+        var messageComponent = Qt.createComponent("components/MessageDialog.qml")
+        if (messageComponent.status === Component.Ready) {
+            var messageDialog = messageComponent.createObject(mainPage, {
+                "title": title,
+                "message": message,
+                "type": type
+            })
+            messageDialog.open()
+        }
     }
 
     Rectangle {
