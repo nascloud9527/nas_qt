@@ -236,11 +236,17 @@ Rectangle {
                         id: mouseArea
                         anchors.fill: parent
                         hoverEnabled: true
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
                         
                         // 单击选中文件
                         onClicked: {
                             if (mouse.button === Qt.LeftButton) {
                                 fileVM.select_file(index)
+                            } else if (mouse.button === Qt.RightButton) {
+                                // 右键菜单
+                                contextMenu.contextIndex = index
+                                contextMenu.popup()
+                                console.log("右键菜单触发，文件索引:", index)
                             }
                         }
                         
@@ -248,22 +254,6 @@ Rectangle {
                         onDoubleClicked: {
                             if (mouse.button === Qt.LeftButton) {
                                 fileVM.open_file_or_folder(index)
-                            }
-                        }
-                        
-                        // 右键菜单
-                        onPressAndHold: {
-                            if (mouse.button === Qt.RightButton) {
-                                contextMenu.contextIndex = index
-                                contextMenu.popup()
-                            }
-                        }
-                        
-                        // 右键点击（兼容桌面平台）
-                        onReleased: {
-                            if (mouse.button === Qt.RightButton) {
-                                contextMenu.contextIndex = index
-                                contextMenu.popup()
                             }
                         }
                     }

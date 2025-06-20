@@ -59,6 +59,8 @@
 ```python
 nas_qt/
 ├── main.py                          # 应用程序入口
+├── config.py                        # 配置文件
+├── .env                             # 环境变量配置
 ├── viewmodels/                      # ViewModel 层
 │   ├── login_vm.py                 # 登录视图模型
 │   ├── file_vm.py                  # 文件管理视图模型
@@ -98,10 +100,18 @@ nas_qt/
    pip install PySide6
    ```
 
-3. **运行应用**
+3. **配置环境**
 
    ```bash
-   python main.py
+   # 编辑 .env 文件，设置文件存储路径
+   echo "FILE_BASE_PATH=/path/to/your/storage" > .env
+   echo "API_BASE_URL=http://your-server:8080" >> .env
+   ```
+
+4. **运行应用**
+
+   ```bash
+   python3 main.py
    ```
 
 ## 📖 使用说明
@@ -134,12 +144,34 @@ nas_qt/
 
 ## 🔧 配置说明
 
-### API 服务器配置
+### 环境变量配置 (.env)
 
-应用默认连接到 `http://192.168.1.102:8080`，如需修改服务器地址，请编辑相应的 API 文件。
+创建 `.env` 文件来配置应用程序：
+
+```bash
+# 文件存储的基础路径
+FILE_BASE_PATH=/home/lanyang/nasserver/FileManager/storage
+
+# API服务器地址
+API_BASE_URL=http://127.0.0.1:8080
+```
+
+### 配置项说明
+
+- **FILE_BASE_PATH**: NAS服务器上文件存储的根目录路径
+- **API_BASE_URL**: NAS服务器API的访问地址
+
+### 配置优先级
+
+配置加载优先级（从高到低）：
+1. 环境变量（`FILE_BASE_PATH`, `API_BASE_URL`）
+2. `.env` 文件
+3. 默认配置
+
+### API 服务器配置
+应用默认连接到 `http://127.0.0.1:8080`，可通过 `.env` 文件或环境变量修改。
 
 ### 主题配置
-
 应用支持主题切换功能，可通过 `ThemeManager` 进行配置。
 
 ## 🛠️ 开发指南

@@ -3,6 +3,12 @@ from api.file_api import FileAPI
 import subprocess
 import platform
 import os
+import sys
+
+# 添加项目根目录到路径
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from config import config
 
 class FileViewModel(QObject):
     fileListChanged = Signal()
@@ -48,17 +54,23 @@ class FileViewModel(QObject):
         
         if result["success"]:
             self._current_directory = directory
-            files_data = result["data"].get("files", [])
+            files_data = result["data"].get("files", []) if result["data"] else []
             
             # 转换文件数据格式
             self._file_list = []
-            for file_data in files_data:
-                transformed_file = self._file_api.transform_file_data(file_data)
-                self._file_list.append(transformed_file)
+            if files_data:
+                for file_data in files_data:
+                    if file_data:  # 确保file_data不为None
+                        transformed_file = self._file_api.transform_file_data(file_data)
+                        self._file_list.append(transformed_file)
             
             self._error_message = ""
         else:
             self._error_message = result.get("error", "获取文件列表失败")
+            self._file_list = []
+        
+        # 确保_file_list永远不会是None
+        if self._file_list is None:
             self._file_list = []
         
         self._is_loading = False
@@ -74,26 +86,29 @@ class FileViewModel(QObject):
     @Slot(int, bool)
     def toggle_file_selection(self, index: int, selected: bool):
         """切换文件选择状态"""
-        if 0 <= index < len(self._file_list):
+        if self._file_list and 0 <= index < len(self._file_list):
             self._file_list[index]["selected"] = selected
             self.fileListChanged.emit()
     
     @Slot(bool)
     def select_all_files(self, selected: bool):
         """全选/取消全选文件"""
-        for file_item in self._file_list:
-            file_item["selected"] = selected
-        self.fileListChanged.emit()
+        if self._file_list:
+            for file_item in self._file_list:
+                file_item["selected"] = selected
+            self.fileListChanged.emit()
     
     @Slot()
     def get_selected_files(self):
         """获取选中的文件列表"""
+        if not self._file_list:
+            return []
         return [file_item for file_item in self._file_list if file_item.get("selected", False)]
     
     @Slot(int)
     def open_file_or_folder(self, index: int):
         """打开文件或进入文件夹（双击）"""
-        if 0 <= index < len(self._file_list):
+        if self._file_list and 0 <= index < len(self._file_list):
             file_item = self._file_list[index]
             
             if file_item.get("isDir", False):
@@ -110,20 +125,29 @@ class FileViewModel(QObject):
                     self.open_file_with_system(file_path)
     
     @Slot(str)
-    def open_file_with_system(self, file_path: str):
+    def open_file_with_system(self, relative_path: str):
         """使用系统默认程序打开文件"""
         try:
+            # 获取完整的文件路径
+            full_path = config.get_full_file_path(relative_path)
+            print(f"尝试打开文件: {full_path}")
+            
+            # 检查文件是否存在
+            if not os.path.exists(full_path):
+                print(f"文件不存在: {full_path}")
+                return
+            
             system = platform.system()
             
             if system == "Windows":
-                os.startfile(file_path)
+                os.startfile(full_path)
             elif system == "Darwin":  # macOS
-                subprocess.run(["open", file_path], check=True)
+                subprocess.run(["open", full_path], check=True)
             else:  # Linux
-                subprocess.run(["xdg-open", file_path], check=True)
+                subprocess.run(["xdg-open", full_path], check=True)
                 
         except Exception as e:
-            print(f"无法打开文件 {file_path}: {e}")
+            print(f"无法打开文件 {relative_path}: {e}")
             # 这里可以发出错误信号给UI显示
     
     @Slot(int, int, int)
@@ -133,16 +157,16 @@ class FileViewModel(QObject):
     
     @Slot(int)
     def select_file(self, index: int):
-        """选中文件（单击）"""
-        if 0 <= index < len(self._file_list):
-            # 清除其他文件的选中状态
-            for i, file_item in enumerate(self._file_list):
-                file_item["selected"] = (i == index)
+        """选中文件（单击）- 切换选中状态"""
+        if self._file_list and 0 <= index < len(self._file_list):
+            # 切换当前文件的选中状态
+            current_selected = self._file_list[index].get("selected", False)
+            self._file_list[index]["selected"] = not current_selected
             self.fileListChanged.emit()
     
     @Property(list, notify=fileListChanged)
     def file_list(self):
-        return self._file_list
+        return self._file_list if self._file_list is not None else []
     
     @Property(str, notify=fileListChanged)
     def current_directory(self):

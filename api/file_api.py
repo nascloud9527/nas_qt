@@ -1,9 +1,14 @@
 import requests
 from typing import Optional, Dict, List
+import sys
+import os
+
+# 添加项目根目录到路径
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from config import config
 
 class FileAPI:
-    BASE_URL = "http://192.168.1.102:8080"
-    
     def __init__(self, token: str = ""):
         self.token = token
         self.headers = {
@@ -26,7 +31,7 @@ class FileAPI:
         Returns:
             Dict: 包含文件列表的响应数据
         """
-        url = f"{self.BASE_URL}/api/files"
+        url = f"{config.get_api_base_url()}/api/files"
         
         # 构建查询参数
         params = {}
