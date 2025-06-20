@@ -19,6 +19,9 @@ class FileViewModel(QObject):
     contextMenuRequested = Signal(int, int, int)  # 右键菜单信号 (x, y, index)
     uploadProgressChanged = Signal(int)  # 上传进度信号
     uploadFinished = Signal(bool, str)  # 上传完成信号 (success, message)
+    createFolderFinished = Signal(bool, str)  # 创建文件夹完成信号 (success, message)
+    creatingFolderChanged = Signal()  # 创建文件夹状态变化信号
+    showCreateFolderDialogRequested = Signal()  # 显示创建文件夹对话框信号
     
     def __init__(self):
         super().__init__()
@@ -30,6 +33,7 @@ class FileViewModel(QObject):
         self._error_message = ""
         self._upload_progress = 0
         self._is_uploading = False
+        self._is_creating_folder = False
     
     @Slot(str)
     def set_token(self, token: str):
@@ -232,6 +236,51 @@ class FileViewModel(QObject):
         if file_path:
             self.upload_file(file_path)
     
+    @Slot(str)
+    def create_folder(self, folder_name: str):
+        """创建文件夹"""
+        if not folder_name or not folder_name.strip():
+            self.createFolderFinished.emit(False, "文件夹名称不能为空")
+            return
+        
+        folder_name = folder_name.strip()
+        
+        # 检查文件夹名称是否包含非法字符
+        invalid_chars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|']
+        for char in invalid_chars:
+            if char in folder_name:
+                self.createFolderFinished.emit(False, f"文件夹名称不能包含字符: {char}")
+                return
+        
+        self._is_creating_folder = True
+        self.creatingFolderChanged.emit()
+        
+        # 调用API创建文件夹
+        result = self._file_api.create_directory(
+            root_dir="",  # 用户目录
+            cur_dir=self._current_directory,
+            name=folder_name
+        )
+        
+        if result["success"]:
+            self.createFolderFinished.emit(True, f"文件夹 '{folder_name}' 创建成功")
+            # 创建成功后刷新文件列表
+            self.refresh_file_list()
+        else:
+            error_msg = result.get("error", "创建文件夹失败")
+            self.createFolderFinished.emit(False, error_msg)
+        
+        self._is_creating_folder = False
+        self.creatingFolderChanged.emit()
+    
+    @Slot()
+    def show_create_folder_dialog(self):
+        """显示创建文件夹对话框"""
+        # 使用QML对话框而不是QInputDialog
+        # 这个方法将在QML中调用，所以我们需要发出一个信号
+        # 让QML层处理对话框的显示
+        self.showCreateFolderDialogRequested.emit()
+    
     @Property(int, notify=uploadProgressChanged)
     def upload_progress(self):
         return self._upload_progress
@@ -239,6 +288,10 @@ class FileViewModel(QObject):
     @Property(bool, notify=uploadProgressChanged)
     def is_uploading(self):
         return self._is_uploading
+    
+    @Property(bool, notify=creatingFolderChanged)
+    def is_creating_folder(self):
+        return self._is_creating_folder
     
     @Property(list, notify=fileListChanged)
     def file_list(self):

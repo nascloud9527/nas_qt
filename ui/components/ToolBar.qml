@@ -132,16 +132,20 @@ Rectangle {
                 }
             }
 
-            // 新建文件按钮
+            // 新建文件夹按钮
             Button {
-                text: "新建文件"
+                id: createFolderButton
+                text: fileVM && fileVM.is_creating_folder ? "创建中..." : "新建文件夹"
                 Layout.preferredWidth: 100
                 Layout.preferredHeight: 36
+                enabled: fileVM && !fileVM.is_creating_folder
                 
                 background: Rectangle {
                     radius: 18
-                    color: parent.pressed ? themeManager.hoverColor : themeManager.backgroundColor
-                    border.color: themeManager.dividerColor
+                    color: parent.enabled ? 
+                           (parent.pressed ? themeManager.hoverColor : themeManager.backgroundColor) :
+                           themeManager.disabledColor
+                    border.color: parent.enabled ? themeManager.dividerColor : themeManager.disabledColor
                     border.width: 1
                 }
                 
@@ -149,13 +153,18 @@ Rectangle {
                     text: parent.text
                     font.pixelSize: 12
                     font.weight: Font.Medium
-                    color: themeManager.textPrimaryColor
+                    color: parent.enabled ? themeManager.textPrimaryColor : themeManager.textDisabledColor
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
                 
                 onClicked: {
-                    console.log("点击新建文件")
+                    console.log("点击新建文件夹")
+                    if (fileVM) {
+                        fileVM.show_create_folder_dialog()
+                    } else {
+                        console.log("fileVM不可用")
+                    }
                 }
             }
 

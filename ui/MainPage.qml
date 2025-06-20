@@ -51,6 +51,21 @@ Item {
                 showMessage("上传失败", message, "error")
             }
         }
+        
+        function onCreateFolderFinished(success, message) {
+            console.log("创建文件夹完成:", success, message)
+            // 显示创建文件夹结果消息
+            if (success) {
+                showMessage("创建成功", message, "success")
+            } else {
+                showMessage("创建失败", message, "error")
+            }
+        }
+        
+        function onShowCreateFolderDialogRequested() {
+            console.log("显示创建文件夹对话框")
+            showCreateFolderDialog()
+        }
     }
 
     // 消息提示组件
@@ -64,6 +79,36 @@ Item {
                 "type": type
             })
             messageDialog.open()
+        }
+    }
+
+    // 显示创建文件夹对话框
+    function showCreateFolderDialog() {
+        console.log("showCreateFolderDialog 被调用")
+        
+        // 直接创建对话框对象，而不是使用Loader
+        var dialogComponent = Qt.createComponent("components/CreateFolderDialog.qml")
+        if (dialogComponent.status === Component.Ready) {
+            console.log("对话框组件创建成功")
+            var dialog = dialogComponent.createObject(mainPage, {
+                "folderName": "新建文件夹"
+            })
+            
+            dialog.folderCreated.connect(function(folderName) {
+                console.log("用户确认创建文件夹:", folderName)
+                fileVM.create_folder(folderName)
+                dialog.destroy()
+            })
+            
+            dialog.dialogCancelled.connect(function() {
+                console.log("用户取消创建文件夹")
+                dialog.destroy()
+            })
+            
+            console.log("尝试打开对话框")
+            dialog.open()
+        } else {
+            console.log("对话框组件创建失败:", dialogComponent.errorString())
         }
     }
 
