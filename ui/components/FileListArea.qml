@@ -287,7 +287,9 @@ Rectangle {
                         // 单击选中文件
                         onClicked: {
                             if (mouse.button === Qt.LeftButton) {
-                                fileVM.select_file(index)
+                                // 检测是否按住了Ctrl键
+                                var ctrlPressed = (mouse.modifiers & Qt.ControlModifier) !== 0
+                                fileVM.select_file(index, ctrlPressed)
                             } else if (mouse.button === Qt.RightButton) {
                                 // 右键菜单
                                 contextMenu.contextIndex = index

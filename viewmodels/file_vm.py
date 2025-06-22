@@ -178,13 +178,24 @@ class FileViewModel(QObject):
         """显示右键菜单"""
         self.contextMenuRequested.emit(x, y, index)
     
-    @Slot(int)
-    def select_file(self, index: int):
-        """选中文件（单击）- 切换选中状态"""
+    @Slot(int, bool)
+    def select_file(self, index: int, ctrl_key_pressed: bool = False):
+        """选中文件（单击）- 根据Ctrl键状态决定选择行为"""
         if self._file_list and 0 <= index < len(self._file_list):
-            # 切换当前文件的选中状态
-            current_selected = self._file_list[index].get("selected", False)
-            self._file_list[index]["selected"] = not current_selected
+            if ctrl_key_pressed:
+                # 按住Ctrl键：切换当前文件的选中状态，不影响其他文件
+                current_selected = self._file_list[index].get("selected", False)
+                self._file_list[index]["selected"] = not current_selected
+            else:
+                # 没有按Ctrl键：取消其他文件的选中状态，只选中当前文件
+                for i, file_item in enumerate(self._file_list):
+                    if i == index:
+                        # 当前文件设置为选中
+                        self._file_list[i]["selected"] = True
+                    else:
+                        # 其他文件取消选中
+                        self._file_list[i]["selected"] = False
+            
             self.fileListChanged.emit()
     
     @Slot(str)

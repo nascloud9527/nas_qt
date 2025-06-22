@@ -19,8 +19,8 @@ Dialog {
     
     background: Rectangle {
         radius: 12
-        color: themeManager.surfaceColor
-        border.color: themeManager.dividerColor
+        color: themeManager.surfaceColor || "#FFFFFF"
+        border.color: themeManager.dividerColor || "#BDBDBD"
         border.width: 1
     }
     
@@ -43,7 +43,7 @@ Dialog {
                 text: "创建文件夹"
                 font.pixelSize: 18
                 font.weight: Font.Bold
-                color: themeManager.textPrimaryColor
+                color: themeManager.textPrimaryColor || "#212121"
                 Layout.fillWidth: true
             }
         }
@@ -53,8 +53,8 @@ Dialog {
             Layout.fillWidth: true
             Layout.preferredHeight: 40
             radius: 8
-            color: themeManager.backgroundColor
-            border.color: folderNameInput.focus ? themeManager.primaryColor : themeManager.dividerColor
+            color: themeManager.backgroundColor || "#FAFAFA"
+            border.color: folderNameInput.focus ? (themeManager.primaryColor || "#2196F3") : (themeManager.dividerColor || "#BDBDBD")
             border.width: folderNameInput.focus ? 2 : 1
             
             // 边框颜色动画
@@ -73,7 +73,7 @@ Dialog {
                 anchors.margins: 12
                 text: createFolderDialog.folderName
                 font.pixelSize: 14
-                color: themeManager.textPrimaryColor
+                color: themeManager.textPrimaryColor || "#212121"
                 verticalAlignment: TextInput.AlignVCenter
                 
                 onTextChanged: {
@@ -110,7 +110,7 @@ Dialog {
                 anchors.margins: 12
                 text: "请输入文件夹名称"
                 font.pixelSize: 14
-                color: themeManager.textSecondaryColor
+                color: themeManager.textSecondaryColor || "#757575"
                 verticalAlignment: Text.AlignVCenter
                 visible: folderNameInput.text === ""
             }
@@ -140,9 +140,9 @@ Dialog {
                 
                 background: Rectangle {
                     radius: 18
-                    color: parent.pressed ? themeManager.hoverColor : 
-                           parent.hovered ? themeManager.hoverColor : themeManager.backgroundColor
-                    border.color: themeManager.dividerColor
+                    color: parent.pressed ? (themeManager.hoverColor || "#F0F0F0") : 
+                           parent.hovered ? (themeManager.hoverColor || "#F0F0F0") : (themeManager.backgroundColor || "#FFFFFF")
+                    border.color: themeManager.dividerColor || "#BDBDBD"
                     border.width: 1
                 }
                 
@@ -150,7 +150,7 @@ Dialog {
                     text: parent.text
                     font.pixelSize: 12
                     font.weight: Font.Medium
-                    color: themeManager.textPrimaryColor
+                    color: themeManager.textPrimaryColor || "#212121"
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
@@ -171,10 +171,10 @@ Dialog {
                 background: Rectangle {
                     radius: 18
                     color: parent.enabled ? 
-                           (parent.pressed ? themeManager.primaryDarkColor : 
-                            parent.hovered ? themeManager.primaryLightColor : themeManager.primaryColor) :
-                           themeManager.disabledColor
-                    border.color: parent.enabled ? "#40000000" : themeManager.disabledColor
+                           (parent.pressed ? (themeManager.primaryDarkColor || "#1976D2") : 
+                            parent.hovered ? (themeManager.primaryColor || "#2196F3") : (themeManager.primaryColor || "#2196F3")) :
+                           (themeManager.disabledColor || "#E0E0E0")
+                    border.color: parent.enabled ? "#40000000" : (themeManager.disabledColor || "#E0E0E0")
                     border.width: 1
                 }
                 
@@ -182,7 +182,7 @@ Dialog {
                     text: parent.text
                     font.pixelSize: 12
                     font.weight: Font.Medium
-                    color: parent.enabled ? "white" : themeManager.textDisabledColor
+                    color: parent.enabled ? "white" : (themeManager.textDisabledColor || "#9E9E9E")
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }

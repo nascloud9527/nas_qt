@@ -39,6 +39,12 @@ ApplicationWindow {
         }
     }
     
+    // USB通知组件
+    USBNotification {
+        id: usbNotification
+        z: 1000 // 确保在最顶层显示
+    }
+    
     // 确保对象在页面切换时保持可用
     Component.onCompleted: {
         // 确保fileVM和themeManager在全局上下文中可用
@@ -47,6 +53,15 @@ ApplicationWindow {
         }
         if (themeManager) {
             console.log("themeManager 已注册")
+        }
+        if (usbMonitor) {
+            console.log("usbMonitor 已注册")
+            
+            // 连接USB事件信号
+            usbMonitor.usbEventReceived.connect(function(eventType, deviceName) {
+                console.log("USB事件:", eventType, deviceName)
+                usbNotification.show(deviceName, eventType)
+            })
         }
     }
 } 

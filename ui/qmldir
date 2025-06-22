@@ -3,3 +3,4 @@ Login 1.0 Login.qml
 NavigationBar 1.0 components/NavigationBar.qml
 ToolBar 1.0 components/ToolBar.qml
 FileListArea 1.0 components/FileListArea.qml
+USBNotification 1.0 components/USBNotification.qml
