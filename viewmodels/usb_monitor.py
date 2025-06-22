@@ -6,6 +6,13 @@ import subprocess
 import platform
 import os
 import re
+import sys
+
+# 添加项目根目录到路径
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from api.usb_api import USBAPI
+from config import config
 
 class USBMonitor(QObject):
     # 信号定义
@@ -24,6 +31,7 @@ class USBMonitor(QObject):
         self._monitor_timer.timeout.connect(self._check_usb_devices)
         self._previous_devices = set()
         self._device_cache = {}  # 缓存设备信息
+        self._usb_api = USBAPI()  # USB API实例
         
         # 连接信号
         self._socket.connected.connect(self._on_connected)
@@ -77,44 +85,49 @@ class USBMonitor(QObject):
         devices = set()
         
         try:
-            if platform.system() == "Linux":
-                # Linux系统使用lsusb命令
-                result = subprocess.run(['lsusb'], capture_output=True, text=True, timeout=5)
-                if result.returncode == 0:
-                    for line in result.stdout.strip().split('\n'):
-                        if line.strip():
-                            # 解析lsusb输出，提取设备ID
-                            match = re.search(r'Bus (\d+) Device (\d+): ID ([a-f0-9]{4}):([a-f0-9]{4})', line)
-                            if match:
-                                bus = match.group(1)
-                                device = match.group(2)
-                                vendor_id = match.group(3)
-                                product_id = match.group(4)
-                                device_id = f"{bus}:{device}"
-                                devices.add(device_id)
-                                
-                                # 缓存设备信息
-                                device_name = line.split('ID')[1].strip()
-                                self._device_cache[device_id] = device_name
+            # 检查是否有认证token
+            if not self._usb_api.token:
+                # 没有token时不输出错误日志，静默处理
+                return devices
+            
+            # 使用API接口获取USB设备列表
+            result = self._usb_api.get_usb_devices()
+            
+            if result["success"] and result["data"]:
+                usb_devices = result["data"].get("data", [])
                 
-                # 也检查/proc/bus/usb/devices
-                try:
-                    with open('/proc/bus/usb/devices', 'r') as f:
-                        content = f.read()
-                        # 这里可以添加更详细的设备信息解析
-                except:
-                    pass
-                    
+                for device_info in usb_devices:
+                    # 使用设备路径作为唯一标识符
+                    device_path = device_info.get("device", "")
+                    if device_path:
+                        devices.add(device_path)
+                        
+                        # 缓存设备信息
+                        device_name = device_info.get("label", device_info.get("device", ""))
+                        self._device_cache[device_path] = device_name
+                        
+                        # 只在首次发现设备时输出日志
+                        if device_path not in self._previous_devices:
+                            print(f"发现USB设备: {device_path} - {device_name}")
+            else:
+                # 只在状态码不是401时输出错误日志（避免未认证时的重复日志）
+                if result.get("status_code") != 401:
+                    print(f"API获取USB设备失败: {result.get('error', '未知错误')}")
+                
         except Exception as e:
             print(f"获取USB设备列表失败: {e}")
         
-        return devices
-    
+        return devices 
     def _get_device_info(self, device_id):
         """获取设备详细信息"""
         if device_id in self._device_cache:
             return self._device_cache[device_id]
         return device_id
+    
+    @Slot(str)
+    def set_token(self, token: str):
+        """设置认证token"""
+        self._usb_api.set_token(token)
     
     @Slot()
     def connect_to_server(self):
@@ -207,4 +220,4 @@ class USBMonitor(QObject):
     
     @Property(str, notify=statusMessageChanged)
     def status_message(self):
-        return self._status_message 
+        return self._status_message

@@ -29,6 +29,9 @@ ApplicationWindow {
                     fileVM.set_token(loginVM.get_token())
                     fileVM.set_username(loginVM.get_username())
                     
+                    // 为USB监控器设置token
+                    usbMonitor.set_token(loginVM.get_token())
+                    
                     // 加载文件列表（使用用户名作为目录）
                     fileVM.load_file_list("")
                     
@@ -64,4 +67,4 @@ ApplicationWindow {
             })
         }
     }
-} 
+}
