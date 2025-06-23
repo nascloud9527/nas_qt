@@ -15,37 +15,43 @@ ApplicationWindow {
     // 设置窗口图标（如果有的话）
     // icon: "qrc:/icons/app_icon.png"
 
-    // 页面加载器，支持页面切换
-    Loader {
-        id: mainPageLoader
+    // 主容器
+    Item {
+        id: mainContainer
         anchors.fill: parent
-        source: "Login.qml"
         
-        // 监听登录成功信号
-        onItemChanged: {
-            if (item && item.loginSuccess) {
-                item.loginSuccess.connect(function() {
-                    // 设置 token 和用户名
-                    fileVM.set_token(loginVM.get_token())
-                    fileVM.set_username(loginVM.get_username())
-                    
-                    // 为USB监控器设置token
-                    usbMonitor.set_token(loginVM.get_token())
-                    
-                    // 加载文件列表（使用用户名作为目录）
-                    fileVM.load_file_list("")
-                    
-                    // 切换到主页面
-                    mainPageLoader.source = "MainPage.qml"
-                })
+        // 页面加载器，支持页面切换
+        Loader {
+            id: mainPageLoader
+            anchors.fill: parent
+            source: "Login.qml"
+            
+            // 监听登录成功信号
+            onItemChanged: {
+                if (item && item.loginSuccess) {
+                    item.loginSuccess.connect(function() {
+                        // 设置 token 和用户名
+                        fileVM.set_token(loginVM.get_token())
+                        fileVM.set_username(loginVM.get_username())
+                        
+                        // 为USB监控器设置token
+                        usbMonitor.set_token(loginVM.get_token())
+                        
+                        // 加载文件列表（使用用户名作为目录）
+                        fileVM.load_file_list("")
+                        
+                        // 切换到主页面
+                        mainPageLoader.source = "MainPage.qml"
+                    })
+                }
             }
         }
-    }
-    
-    // USB通知组件
-    USBNotification {
-        id: usbNotification
-        z: 1000 // 确保在最顶层显示
+        
+        // USB通知组件 - 放在主容器中
+        USBNotification {
+            id: usbNotification
+            z: 1000 // 确保在最顶层显示
+        }
     }
     
     // 确保对象在页面切换时保持可用
@@ -60,10 +66,16 @@ ApplicationWindow {
         if (usbMonitor) {
             console.log("usbMonitor 已注册")
             
-            // 连接USB事件信号
+            // 连接USB事件信号 - 确保每次_on_message接收到消息时都能触发通知
             usbMonitor.usbEventReceived.connect(function(eventType, deviceName) {
-                console.log("USB事件:", eventType, deviceName)
+                console.log("收到USB事件信号:", eventType, deviceName)
+                console.log("准备显示通知...")
                 usbNotification.show(deviceName, eventType)
+            })
+            
+            // 也可以直接监听状态消息变化
+            usbMonitor.statusMessageChanged.connect(function() {
+                console.log("USB状态消息变化:", usbMonitor.status_message)
             })
         }
     }

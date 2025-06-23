@@ -25,10 +25,10 @@ Rectangle {
     property string deviceName: ""
     property string eventType: ""
     
-    // 位置：右上角
+    // 位置：右上角 - 修复锚点设置
     anchors {
-        right: parent.right
-        top: parent.top
+        right: parent ? parent.right : undefined
+        top: parent ? parent.top : undefined
         margins: 20
     }
     
@@ -80,6 +80,7 @@ Rectangle {
         opacity: 0.0
         y: -20
     }
+    
     
     ColumnLayout {
         anchors.fill: parent
@@ -167,6 +168,7 @@ Rectangle {
     
     // 显示通知
     function show(device, type) {
+ 
         deviceName = device
         eventType = type
         isVisible = true
@@ -175,7 +177,9 @@ Rectangle {
     
     // 隐藏通知
     function hide() {
+
         isVisible = false
         autoHideTimer.stop()
+
     }
 } 
