@@ -28,7 +28,10 @@ class USBMonitor(QObject):
         self._device_cache = {}  # 缓存设备信息
         self._usb_api = USBAPI()  # USB API实例
         self._check_pending = False  # 检查挂起标志
-        
+            # 添加重连定时器
+        self._reconnect_timer = QTimer()
+        self._reconnect_timer.timeout.connect(self.connect_to_server)
+        self._reconnect_timer.setInterval(5000)  # 5秒
         # 连接信号
         self._socket.connected.connect(self._on_connected)
         self._socket.disconnected.connect(self._on_disconnected)
@@ -150,20 +153,25 @@ class USBMonitor(QObject):
         self._update_status("已连接到 USB 后台服务")
         self.connectionStatusChanged.emit()
         print("USB监控服务连接成功")
+        # 连接成功后停止重连定时器
+        self._reconnect_timer.stop()
     
     def _on_disconnected(self):
         """连接断开回调"""
         self._is_connected = False
-        self._update_status("连接已断开")
+        self._update_status("连接已断开，5秒后尝试重新连接...")
         self.connectionStatusChanged.emit()
-        print("USB监控服务连接断开")
-    
+        print("USB监控服务连接断开，5秒后尝试重新连接...")
+        # 启动重连定时器
+        self._reconnect_timer.start()
     def _on_error(self, error):
         """连接错误回调"""
         self._is_connected = False
         self._update_status(f"连接错误: {error}")
         self.connectionStatusChanged.emit()
         print(f"USB监控服务连接错误: {error}")
+        # 启动重连定时器
+        self._reconnect_timer.start()
     
     def _on_message(self, message):
         """接收消息回调"""
