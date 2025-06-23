@@ -22,97 +22,21 @@ class USBMonitor(QObject):
         self._is_connected = False
         self._status_message = "未连接"
         self._server_url = "ws://localhost:8080/ws"
-        self._monitor_timer = QTimer()
-        self._monitor_timer.timeout.connect(self._check_usb_devices)
-        self._previous_devices = set()
-        self._device_cache = {}  # 缓存设备信息
         self._usb_api = USBAPI()  # USB API实例
-        self._check_pending = False  # 检查挂起标志
-            # 添加重连定时器
+        
+        # 添加重连定时器
         self._reconnect_timer = QTimer()
         self._reconnect_timer.timeout.connect(self.connect_to_server)
         self._reconnect_timer.setInterval(5000)  # 5秒
+        
         # 连接信号
         self._socket.connected.connect(self._on_connected)
         self._socket.disconnected.connect(self._on_disconnected)
         self._socket.textMessageReceived.connect(self._on_message)
         self._socket.errorOccurred.connect(self._on_error)
         
-        # 启动本地USB监控
-        self._start_local_monitoring()
-        
         # 尝试连接远程服务器
         self.connect_to_server()
-    
-    def _start_local_monitoring(self):
-        """启动本地USB设备监控"""
-        self._monitor_timer.start(1000)  # 每1秒检查一次
-        self._update_status("正在监控USB设备...")
-        print("启动本地USB设备监控")
-    
-    def _check_usb_devices(self):
-        """检查USB设备变化"""
-        if not self._check_pending:
-            return
-            
-        try:
-            current_devices = self._get_usb_devices()
-            
-            # 检测新插入的设备
-            new_devices = current_devices - self._previous_devices
-            for device in new_devices:
-                device_info = self._get_device_info(device)
-                self._handle_usb_event("insert", device, device_info)
-            
-            # 检测移除的设备
-            removed_devices = self._previous_devices - current_devices
-            for device in removed_devices:
-                device_info = self._device_cache.pop(device, device)
-                self._handle_usb_event("remove", device, device_info)
-            
-            self._previous_devices = current_devices
-            self._check_pending = bool(new_devices or removed_devices)
-            
-        except Exception as e:
-            print(f"检查USB设备时出错: {e}")
-    
-    def _get_usb_devices(self):
-        """获取当前USB设备列表"""
-        devices = set()
-        
-        try:
-            # 检查是否有认证token
-            if not self._usb_api.token:
-                return devices
-            
-            # 使用API接口获取USB设备列表
-            result = self._usb_api.get_usb_devices()
-            
-            if result["success"] and result["data"]:
-                usb_devices = result["data"].get("data", [])
-                
-                for device_info in usb_devices:
-                    # 使用设备路径作为唯一标识符
-                    device_path = device_info.get("device", "")
-                    if device_path:
-                        devices.add(device_path)
-                        
-                        # 缓存设备信息
-                        device_name = device_info.get("label", device_info.get("device", ""))
-                        self._device_cache[device_path] = device_name
-            else:
-                # 只在状态码不是401时输出错误日志（避免未认证时的重复日志）
-                if result.get("status_code") != 401:
-                    print(f"API获取USB设备失败: {result.get('error', '未知错误')}")
-                
-        except Exception as e:
-            print(f"获取USB设备列表失败: {e}")
-        
-        return devices 
-    
-    def _get_device_info(self, device_id):
-        """获取设备详细信息"""
-        return self._device_cache.get(device_id, device_id)
     
     def _handle_usb_event(self, event_type, device_id, device_info):
         """处理USB事件"""
@@ -132,7 +56,6 @@ class USBMonitor(QObject):
     def set_token(self, token: str):
         """设置认证token"""
         self._usb_api.set_token(token)
-        self._check_pending = True  # 设置token后检查USB设备
     
     @Slot()
     def connect_to_server(self):
@@ -164,6 +87,7 @@ class USBMonitor(QObject):
         print("USB监控服务连接断开，5秒后尝试重新连接...")
         # 启动重连定时器
         self._reconnect_timer.start()
+    
     def _on_error(self, error):
         """连接错误回调"""
         self._is_connected = False
@@ -242,12 +166,6 @@ class USBMonitor(QObject):
         """重新连接"""
         self.disconnect_from_server()
         self.connect_to_server()
-    
-    @Slot()
-    def refresh_devices(self):
-        """手动刷新设备列表"""
-        self._check_pending = True
-        self._check_usb_devices()
     
     # 属性定义
     @Property(bool, notify=connectionStatusChanged)
