@@ -132,6 +132,48 @@ Rectangle {
                 }
             }
 
+            // 下载文件按钮
+            Button {
+                id: downloadButton
+                text: downloadVM && downloadVM.is_downloading ? "下载中..." : "下载文件"
+                Layout.preferredWidth: 100
+                Layout.preferredHeight: 36
+                enabled: fileVM && downloadVM && !downloadVM.is_downloading
+                
+                background: Rectangle {
+                    radius: 18
+                    color: parent.enabled ? 
+                           (parent.pressed ? themeManager.primaryDarkColor : themeManager.primaryColor) :
+                           themeManager.disabledColor
+                    border.color: parent.enabled ? "#40000000" : themeManager.disabledColor
+                    border.width: 1
+                }
+                
+                contentItem: Text {
+                    text: parent.text
+                    font.pixelSize: 12
+                    font.weight: Font.Medium
+                    color: parent.enabled ? "white" : themeManager.textDisabledColor
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+                
+                onClicked: {
+                    console.log("点击下载文件")
+                    if (fileVM && downloadVM) {
+                        // 获取当前选中的文件列表进行下载
+                        var selectedFiles = fileVM.get_selected_files()                      
+                        if (selectedFiles && selectedFiles.length > 0) {
+                            downloadVM.download_multiple_files(selectedFiles)
+                        } else {
+                            console.log("没有选中文件")
+                        }
+                    } else {
+                        console.log("fileVM或downloadVM不可用")
+                    }
+                }
+            }
+
             // 新建文件夹按钮
             Button {
                 id: createFolderButton
