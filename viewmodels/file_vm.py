@@ -101,17 +101,41 @@ class FileViewModel(QObject):
     @Slot(int, bool)
     def toggle_file_selection(self, index: int, selected: bool):
         """切换文件选择状态"""
+        print(f"toggle_file_selection 被调用: index={index}, selected={selected}")
         if self._file_list and 0 <= index < len(self._file_list):
+            old_selected = self._file_list[index].get("selected", False)
+            
+            # 如果状态没有变化，直接返回
+            if old_selected == selected:
+                print(f"文件 {index} ({self._file_list[index].get('name', 'Unknown')}) 状态已经是 {selected}，无需更改")
+                return
+            
             self._file_list[index]["selected"] = selected
+            print(f"文件 {index} ({self._file_list[index].get('name', 'Unknown')}) 选择状态从 {old_selected} 改为 {selected}")
             self.fileListChanged.emit()
+        else:
+            print(f"无效的文件索引: {index}, 文件列表长度: {len(self._file_list) if self._file_list else 0}")
     
     @Slot(bool)
     def select_all_files(self, selected: bool):
         """全选/取消全选文件"""
+        print(f"select_all_files 被调用: selected={selected}")
         if self._file_list:
-            for file_item in self._file_list:
-                file_item["selected"] = selected
-            self.fileListChanged.emit()
+            changed_count = 0
+            for i, file_item in enumerate(self._file_list):
+                old_selected = file_item.get("selected", False)
+                if old_selected != selected:
+                    file_item["selected"] = selected
+                    changed_count += 1
+                    print(f"  文件 {i} ({file_item.get('name', 'Unknown')}) 选择状态从 {old_selected} 改为 {selected}")
+            
+            if changed_count > 0:
+                print(f"全选操作完成，共修改了 {changed_count} 个文件")
+                self.fileListChanged.emit()
+            else:
+                print("全选操作：没有文件状态需要修改")
+        else:
+            print("文件列表为空，无法执行全选操作")
     
     @Slot()
     def get_selected_files(self):
@@ -188,22 +212,36 @@ class FileViewModel(QObject):
     @Slot(int, bool)
     def select_file(self, index: int, ctrl_key_pressed: bool = False):
         """选中文件（单击）- 根据Ctrl键状态决定选择行为"""
+        print(f"select_file 被调用: index={index}, ctrl_key_pressed={ctrl_key_pressed}")
         if self._file_list and 0 <= index < len(self._file_list):
             if ctrl_key_pressed:
                 # 按住Ctrl键：切换当前文件的选中状态，不影响其他文件
                 current_selected = self._file_list[index].get("selected", False)
                 self._file_list[index]["selected"] = not current_selected
+                print(f"Ctrl+点击: 文件 {index} ({self._file_list[index].get('name', 'Unknown')}) 选择状态切换为 {not current_selected}")
             else:
-                # 没有按Ctrl键：取消其他文件的选中状态，只选中当前文件
-                for i, file_item in enumerate(self._file_list):
-                    if i == index:
-                        # 当前文件设置为选中
-                        self._file_list[i]["selected"] = True
-                    else:
-                        # 其他文件取消选中
-                        self._file_list[i]["selected"] = False
+                # 没有按Ctrl键：检查当前文件是否已经选中
+                current_selected = self._file_list[index].get("selected", False)
+                if current_selected:
+                    # 如果当前文件已经选中，则取消选中
+                    self._file_list[index]["selected"] = False
+                    print(f"单击取消选中: 文件 {index} ({self._file_list[index].get('name', 'Unknown')})")
+                else:
+                    # 如果当前文件未选中，则取消其他文件的选中状态，只选中当前文件
+                    for i, file_item in enumerate(self._file_list):
+                        if i == index:
+                            # 当前文件设置为选中
+                            self._file_list[i]["selected"] = True
+                            print(f"单击选中: 文件 {i} ({file_item.get('name', 'Unknown')})")
+                        else:
+                            # 其他文件取消选中
+                            if file_item.get("selected", False):
+                                print(f"取消选中: 文件 {i} ({file_item.get('name', 'Unknown')})")
+                            self._file_list[i]["selected"] = False
             
             self.fileListChanged.emit()
+        else:
+            print(f"无效的文件索引: {index}, 文件列表长度: {len(self._file_list) if self._file_list else 0}")
     
     @Slot(str)
     def create_folder(self, folder_name: str):
@@ -300,6 +338,21 @@ class FileViewModel(QObject):
     @Property(bool, notify=fileListChanged)
     def is_at_home(self):
         return self._current_directory == self._current_username or not self._current_directory
+    
+    @Property(bool, notify=fileListChanged)
+    def all_files_selected(self):
+        """是否所有文件都被选中"""
+        if not self._file_list:
+            return False
+        return all(file_item.get("selected", False) for file_item in self._file_list)
+    
+    @Property(bool, notify=fileListChanged)
+    def some_files_selected(self):
+        """是否有部分文件被选中"""
+        if not self._file_list:
+            return False
+        selected_count = sum(1 for file_item in self._file_list if file_item.get("selected", False))
+        return 0 < selected_count < len(self._file_list)
     
     # 上传相关的属性委托给UploadViewModel
     @Property(int, notify=fileListChanged)

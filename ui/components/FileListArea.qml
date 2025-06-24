@@ -75,10 +75,15 @@ Rectangle {
                     id: selectAllCheckBox
                     Layout.preferredWidth: 24
                     Layout.preferredHeight: 24
+                    checked: fileVM.all_files_selected
+                    tristate: fileVM.some_files_selected && !fileVM.all_files_selected
                     
                     onCheckedChanged: {
-                        // 全选/取消全选
-                        fileVM.select_all_files(checked)
+                        // 只有当复选框状态与全选状态不一致时才调用
+                        if (checked !== fileVM.all_files_selected) {
+                            console.log("全选复选框状态改变:", checked)
+                            fileVM.select_all_files(checked)
+                        }
                     }
                 }
 
@@ -214,7 +219,10 @@ Rectangle {
                 delegate: Rectangle {
                     width: fileListView.width
                     height: 50
-                    color: mouseArea.containsMouse ? themeManager.hoverColor : themeManager.surfaceColor
+                    color: mouseArea.containsMouse ? themeManager.hoverColor : 
+                           (modelData.selected ? themeManager.primaryColor + "20" : themeManager.surfaceColor)
+                    border.color: modelData.selected ? themeManager.primaryColor : "transparent"
+                    border.width: modelData.selected ? 2 : 0
 
                     RowLayout {
                         anchors.fill: parent
@@ -228,7 +236,10 @@ Rectangle {
                             checked: modelData.selected
                             
                             onCheckedChanged: {
-                                fileVM.toggle_file_selection(index, checked)
+                                // 只有当复选框状态与文件选择状态不一致时才调用
+                                if (checked !== modelData.selected) {
+                                    fileVM.toggle_file_selection(index, checked)
+                                }
                             }
                         }
 
