@@ -1,5 +1,6 @@
 from PySide6.QtCore import QObject, Signal, Slot, Property
 from api.file_api import FileAPI
+from viewmodels.upload_vm import UploadViewModel
 import subprocess
 import platform
 import os
@@ -17,8 +18,6 @@ class FileViewModel(QObject):
     fileOpened = Signal(str)  # 文件打开信号
     directoryChanged = Signal(str)  # 目录改变信号
     contextMenuRequested = Signal(int, int, int)  # 右键菜单信号 (x, y, index)
-    uploadProgressChanged = Signal(int)  # 上传进度信号
-    uploadFinished = Signal(bool, str)  # 上传完成信号 (success, message)
     createFolderFinished = Signal(bool, str)  # 创建文件夹完成信号 (success, message)
     creatingFolderChanged = Signal()  # 创建文件夹状态变化信号
     showCreateFolderDialogRequested = Signal()  # 显示创建文件夹对话框信号
@@ -26,19 +25,26 @@ class FileViewModel(QObject):
     def __init__(self):
         super().__init__()
         self._file_api = FileAPI()
+        self._upload_vm = UploadViewModel()  # 新增上传ViewModel实例
+        
+        # 连接上传ViewModel的信号
+        self._upload_vm.uploadProgressChanged.connect(self._on_upload_progress_changed)
+        self._upload_vm.uploadFinished.connect(self._on_upload_finished)
+        self._upload_vm.uploadStarted.connect(self._on_upload_started)
+        self._upload_vm.uploadCancelled.connect(self._on_upload_cancelled)
+        
         self._file_list = []
         self._current_directory = ""
         self._current_username = ""  # 当前登录的用户名
         self._is_loading = False
         self._error_message = ""
-        self._upload_progress = 0
-        self._is_uploading = False
         self._is_creating_folder = False
     
     @Slot(str)
     def set_token(self, token: str):
         """设置认证 token"""
         self._file_api.set_token(token)
+        self._upload_vm.set_token(token)  # 同时设置上传ViewModel的token
     
     @Slot(str)
     def set_username(self, username: str):
@@ -62,6 +68,7 @@ class FileViewModel(QObject):
         
         if result["success"]:
             self._current_directory = directory
+            self._upload_vm.set_current_directory(directory)  # 同步设置上传目录
             files_data = result["data"].get("files", []) if result["data"] else []
             
             # 转换文件数据格式
@@ -199,55 +206,6 @@ class FileViewModel(QObject):
             self.fileListChanged.emit()
     
     @Slot(str)
-    def upload_file(self, file_path: str):
-        """上传文件到当前目录"""
-        if not file_path or not os.path.exists(file_path):
-            self.uploadFinished.emit(False, "文件不存在")
-            return
-        
-        self._is_uploading = True
-        self._upload_progress = 0
-        self.uploadProgressChanged.emit(0)
-        
-        # 调用API上传文件
-        result = self._file_api.upload_file(file_path, self._current_directory)
-        
-        if result["success"]:
-            self._upload_progress = 100
-            self.uploadProgressChanged.emit(100)
-            self.uploadFinished.emit(True, "文件上传成功")
-            # 上传成功后刷新文件列表
-            self.refresh_file_list()
-        else:
-            error_msg = result.get("error", "上传失败")
-            self.uploadFinished.emit(False, error_msg)
-        
-        self._is_uploading = False
-        self.uploadProgressChanged.emit(0)  # 重置进度
-    
-    @Slot()
-    def select_file_for_upload(self):
-        """选择文件进行上传"""
-        from PySide6.QtWidgets import QFileDialog, QApplication
-        
-        # 获取当前应用实例
-        app = QApplication.instance()
-        if not app:
-            self.uploadFinished.emit(False, "无法获取应用程序实例")
-            return
-        
-        # 打开文件选择对话框
-        file_path, _ = QFileDialog.getOpenFileName(
-            None,
-            "选择要上传的文件",
-            "",
-            "所有文件 (*.*)"
-        )
-        
-        if file_path:
-            self.upload_file(file_path)
-    
-    @Slot(str)
     def create_folder(self, folder_name: str):
         """创建文件夹"""
         if not folder_name or not folder_name.strip():
@@ -292,14 +250,33 @@ class FileViewModel(QObject):
         # 让QML层处理对话框的显示
         self.showCreateFolderDialogRequested.emit()
     
-    @Property(int, notify=uploadProgressChanged)
-    def upload_progress(self):
-        return self._upload_progress
+    # 上传相关的方法委托给UploadViewModel
+    @Slot(str)
+    def upload_file(self, file_path: str):
+        """上传文件到当前目录"""
+        self._upload_vm.upload_file(file_path)
     
-    @Property(bool, notify=uploadProgressChanged)
-    def is_uploading(self):
-        return self._is_uploading
+    @Slot()
+    def select_file_for_upload(self):
+        """选择文件进行上传"""
+        self._upload_vm.select_file_for_upload()
     
+    @Slot()
+    def select_multiple_files_for_upload(self):
+        """选择多个文件进行上传"""
+        self._upload_vm.select_multiple_files_for_upload()
+    
+    @Slot()
+    def cancel_current_upload(self):
+        """取消当前上传"""
+        self._upload_vm.cancel_current_upload()
+    
+    @Slot()
+    def clear_upload_queue(self):
+        """清空上传队列"""
+        self._upload_vm.clear_upload_queue()
+    
+    # 属性定义
     @Property(bool, notify=creatingFolderChanged)
     def is_creating_folder(self):
         return self._is_creating_folder
@@ -322,4 +299,53 @@ class FileViewModel(QObject):
     
     @Property(bool, notify=fileListChanged)
     def is_at_home(self):
-        return self._current_directory == self._current_username or not self._current_directory 
+        return self._current_directory == self._current_username or not self._current_directory
+    
+    # 上传相关的属性委托给UploadViewModel
+    @Property(int, notify=fileListChanged)
+    def upload_progress(self):
+        return self._upload_vm.upload_progress
+    
+    @Property(bool, notify=fileListChanged)
+    def is_uploading(self):
+        return self._upload_vm.is_uploading
+    
+    @Property(str, notify=fileListChanged)
+    def current_upload_file(self):
+        return self._upload_vm.current_upload_file
+    
+    @Property(list, notify=fileListChanged)
+    def upload_queue(self):
+        return self._upload_vm.upload_queue
+    
+    @Property(int, notify=fileListChanged)
+    def queue_progress(self):
+        return self._upload_vm.queue_progress
+    
+    @Property(int, notify=fileListChanged)
+    def queue_total(self):
+        return self._upload_vm.queue_total
+    
+    # 获取UploadViewModel实例的方法
+    def get_upload_viewmodel(self):
+        """获取上传ViewModel实例"""
+        return self._upload_vm
+    
+    def _on_upload_progress_changed(self, progress: int):
+        """处理上传进度变化"""
+        self.fileListChanged.emit()  # 触发属性更新
+    
+    def _on_upload_finished(self, success: bool, message: str):
+        """处理上传完成"""
+        if success:
+            # 上传成功后刷新文件列表
+            self.refresh_file_list()
+        self.fileListChanged.emit()  # 触发属性更新
+    
+    def _on_upload_started(self, file_name: str):
+        """处理上传开始"""
+        self.fileListChanged.emit()  # 触发属性更新
+    
+    def _on_upload_cancelled(self):
+        """处理上传取消"""
+        self.fileListChanged.emit()  # 触发属性更新 
