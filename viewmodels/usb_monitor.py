@@ -41,9 +41,7 @@ class USBMonitor(QObject):
     def _handle_usb_event(self, event_type, device_id, device_info):
         """处理USB事件"""
         event_text = "插入" if event_type == "insert" else "移除"
-        print(f"🔌{' ' if event_type == 'insert' else '❌ '}检测到USB设备{event_text}: {device_info}")
-        
-        print(f"发射USB事件信号: {event_type}, {device_info}")
+
         self.usbEventReceived.emit(event_type, device_info)
         self._update_status(f"USB设备{event_text}: {device_info}")
     
@@ -100,39 +98,39 @@ class USBMonitor(QObject):
     def _on_message(self, message):
         """接收消息回调"""
         try:
-            print(f"收到WebSocket消息: {message}")
+            # print(f"收到WebSocket消息: {message}")
             # 尝试解析JSON消息
             data = json.loads(message)
             event_type = data.get("type", "unknown")
             device_name = data.get("device", "未知设备")
             
-            print(f"解析后的消息 - 事件类型: {event_type}, 设备名称: {device_name}")
+            # print(f"解析后的消息 - 事件类型: {event_type}, 设备名称: {device_name}")
             
             if event_type in ["insert", "remove"]:
-                print(f"触发USB事件信号: {event_type}, {device_name}")
+                # print(f"触发USB事件信号: {event_type}, {device_name}")
                 self._handle_usb_event(event_type, None, device_name)
             else:
-                print(f"未知USB事件类型: {event_type}")
+                # print(f"未知USB事件类型: {event_type}")
                 self._update_status(f"未知USB事件: {message}")
             
         except json.JSONDecodeError as e:
-            print(f"JSON解析错误，尝试解析纯文本消息: {e}")
+            # print(f"JSON解析错误，尝试解析纯文本消息: {e}")
             # 如果不是JSON格式，尝试解析纯文本消息
             self._parse_text_message(message)
         except Exception as e:
-            print(f"处理WebSocket消息时出错: {e}")
+            # print(f"处理WebSocket消息时出错: {e}")
             self._update_status(f"消息处理错误: {str(e)}")
     
     def _parse_text_message(self, message):
         """解析纯文本格式的USB事件消息"""
         try:
-            print(f"解析纯文本消息: {message}")
+            # print(f"解析纯文本消息: {message}")
             
             # 根据消息内容判断事件类型
             if "❌ 移除设备:" in message:
                 # 移除设备消息
                 device_name = message.split("❌ 移除设备:")[1].strip()
-                print(f"检测到设备移除事件: {device_name}")
+                # print(f"检测到设备移除事件: {device_name}")
                 self._handle_usb_event("remove", None, device_name)
             elif "📦 插入设备:" in message:
                 # 插入设备消息
@@ -142,14 +140,14 @@ class USBMonitor(QObject):
                     device_name = device_part.split("(")[0].strip()
                 else:
                     device_name = device_part
-                print(f"检测到设备插入事件: {device_name}")
+                # print(f"检测到设备插入事件: {device_name}")
                 self._handle_usb_event("insert", None, device_name)
             else:
-                print(f"无法识别的消息格式: {message}")
+                # print(f"无法识别的消息格式: {message}")
                 self._update_status(f"收到消息: {message}")
                 
         except Exception as e:
-            print(f"解析纯文本消息时出错: {e}")
+            # print(f"解析纯文本消息时出错: {e}")
             self._update_status(f"收到消息: {message}")
     
     @Slot(str)

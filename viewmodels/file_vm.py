@@ -101,57 +101,32 @@ class FileViewModel(QObject):
     @Slot(int, bool)
     def toggle_file_selection(self, index: int, selected: bool):
         """切换文件选择状态"""
-        print(f"toggle_file_selection 被调用: index={index}, selected={selected}")
         if self._file_list and 0 <= index < len(self._file_list):
             old_selected = self._file_list[index].get("selected", False)
-            
-            # 如果状态没有变化，直接返回
-            if old_selected == selected:
-                print(f"文件 {index} ({self._file_list[index].get('name', 'Unknown')}) 状态已经是 {selected}，无需更改")
-                return
-            
-            self._file_list[index]["selected"] = selected
-            print(f"文件 {index} ({self._file_list[index].get('name', 'Unknown')}) 选择状态从 {old_selected} 改为 {selected}")
-            self.fileListChanged.emit()
-        else:
-            print(f"无效的文件索引: {index}, 文件列表长度: {len(self._file_list) if self._file_list else 0}")
+            if old_selected != selected:
+                self._file_list[index]["selected"] = selected
+                self.fileListChanged.emit()
     
     @Slot(bool)
     def select_all_files(self, selected: bool):
         """全选/取消全选文件"""
-        print(f"select_all_files 被调用: selected={selected}")
         if self._file_list:
-            changed_count = 0
-            for i, file_item in enumerate(self._file_list):
-                old_selected = file_item.get("selected", False)
-                if old_selected != selected:
+            changed = False
+            for file_item in self._file_list:
+                if file_item.get("selected", False) != selected:
                     file_item["selected"] = selected
-                    changed_count += 1
-                    print(f"  文件 {i} ({file_item.get('name', 'Unknown')}) 选择状态从 {old_selected} 改为 {selected}")
+                    changed = True
             
-            if changed_count > 0:
-                print(f"全选操作完成，共修改了 {changed_count} 个文件")
+            if changed:
                 self.fileListChanged.emit()
-            else:
-                print("全选操作：没有文件状态需要修改")
-        else:
-            print("文件列表为空，无法执行全选操作")
     
     @Slot(result=list)  # 显式声明返回类型为 list
     def get_selected_files(self):
         """获取选中的文件列表"""
         if not self._file_list:
-            print("get_selected_files: 文件列表为空")
             return []
-        
-        selected_files = [file_item for file_item in self._file_list if file_item.get("selected", False)]
-        print(f"get_selected_files: 找到 {len(selected_files)} 个选中文件")
-        
-        # 打印选中文件的详细信息
-        for i, file_item in enumerate(selected_files):
-            print(f"  选中文件 {i}: {file_item.get('name', 'Unknown')}, selected={file_item.get('selected', False)}")
-        
-        return selected_files
+            
+        return [file_item for file_item in self._file_list if file_item.get("selected", False)]
     
     @Slot(int)
     def open_file_or_folder(self, index: int):
@@ -221,37 +196,22 @@ class FileViewModel(QObject):
     @Slot(int, bool)
     def select_file(self, index: int, ctrl_key_pressed: bool = False):
         """选中文件（单击）- 根据Ctrl键状态决定选择行为"""
-        print(f"select_file 被调用: index={index}, ctrl_key_pressed={ctrl_key_pressed}")
         if self._file_list and 0 <= index < len(self._file_list):
             if ctrl_key_pressed:
                 # 按住Ctrl键：切换当前文件的选中状态，不影响其他文件
-                current_selected = self._file_list[index].get("selected", False)
-                self._file_list[index]["selected"] = not current_selected
-                print(f"Ctrl+点击: 文件 {index} ({self._file_list[index].get('name', 'Unknown')}) 选择状态切换为 {not current_selected}")
+                self._file_list[index]["selected"] = not self._file_list[index].get("selected", False)
             else:
                 # 没有按Ctrl键：检查当前文件是否已经选中
                 current_selected = self._file_list[index].get("selected", False)
                 if current_selected:
                     # 如果当前文件已经选中，则取消选中
                     self._file_list[index]["selected"] = False
-                    print(f"单击取消选中: 文件 {index} ({self._file_list[index].get('name', 'Unknown')})")
                 else:
                     # 如果当前文件未选中，则取消其他文件的选中状态，只选中当前文件
                     for i, file_item in enumerate(self._file_list):
-                        if i == index:
-                            # 当前文件设置为选中
-                            self._file_list[i]["selected"] = True
-                            print(f"单击选中: 文件 {i} ({file_item.get('name', 'Unknown')})")
-                        else:
-                            # 其他文件取消选中
-                            if file_item.get("selected", False):
-                                print(f"取消选中: 文件 {i} ({file_item.get('name', 'Unknown')})")
-                            self._file_list[i]["selected"] = False
+                        self._file_list[i]["selected"] = (i == index)
             
             self.fileListChanged.emit()
-        else:
-            print(f"无效的文件索引: {index}, 文件列表长度: {len(self._file_list) if self._file_list else 0}")
-    
     @Slot(str)
     def create_folder(self, folder_name: str):
         """创建文件夹"""

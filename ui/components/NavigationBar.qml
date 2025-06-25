@@ -58,9 +58,125 @@ Rectangle {
             }
         }
 
-        // 右侧占位
-        Item {
-            Layout.fillWidth: true
+       // 新增功能按钮区域（传输 + 全部）
+        Row {
+            spacing: 8
+            Layout.alignment: Qt.AlignRight  // 让按钮靠右侧
+
+            // 传输按钮，带悬停提示
+            Button {
+                id: transferButton
+                height: 32
+                width: 32
+                padding: 4
+
+                background: Rectangle {
+                    radius: 16
+                    color: "transparent"
+                    border.color: themeManager.textSecondaryColor
+                    border.width: 1
+                }
+
+                contentItem: Row {
+                    spacing: 2
+                    anchors.centerIn: parent
+                    
+                    // 上传箭头
+                    Text {
+                        text: "↑"
+                        font.pixelSize: 14
+                        font.weight: Font.Bold
+                        color: themeManager.textPrimaryColor
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                    
+                    // 下载箭头
+                    Text {
+                        text: "↓"
+                        font.pixelSize: 14
+                        font.weight: Font.Bold
+                        color: themeManager.textPrimaryColor
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                }
+
+                // 鼠标悬停提示
+                ToolTip {
+                    parent: transferButton
+                    text: "上传、下载"
+                    visible: transferButton.hovered
+                }
+
+                onClicked: {
+                    console.log("点击了传输按钮，可在此处理上传下载逻辑");
+                    // 这里可扩展实际上传下载相关业务代码，比如弹出对应窗口等
+                }
+            }
+
+            // 全部按钮
+            Button {
+                id: allButton
+                height: 32
+                width: 32
+                padding: 4
+
+                background: Rectangle {
+                    radius: 16
+                    color: "transparent"
+                    border.color: themeManager.textSecondaryColor
+                    border.width: 1
+                }
+
+                contentItem: Grid {
+                    anchors.centerIn: parent
+                    columns: 2
+                    rows: 2
+                    spacing: 1
+                    
+                    // 四个小方块表示全部/网格视图
+                    Rectangle {
+                        width: 3
+                        height: 3
+                        radius: 1
+                        color: themeManager.textPrimaryColor
+                    }
+                    Rectangle {
+                        width: 3
+                        height: 3
+                        radius: 1
+                        color: themeManager.textPrimaryColor
+                    }
+                    Rectangle {
+                        width: 3
+                        height: 3
+                        radius: 1
+                        color: themeManager.textPrimaryColor
+                    }
+                    Rectangle {
+                        width: 3
+                        height: 3
+                        radius: 1
+                        color: themeManager.textPrimaryColor
+                    }
+                }
+
+                // 鼠标悬停提示
+                ToolTip {
+                    parent: allButton
+                    text: "全部文件"
+                    visible: allButton.hovered
+                }
+
+                onClicked: {
+                    console.log("点击了全部按钮，可处理对应逻辑");
+                    // 可扩展点击后展示全部内容等业务逻辑
+                }
+            }
         }
+
+        // 原右侧占位调整，因为上面新增了功能按钮区域，这里可去掉或者按需调整
+        // Item {
+        //     Layout.fillWidth: true
+        // }
     }
-} 
+}
