@@ -78,11 +78,20 @@ Rectangle {
                     checked: fileVM.all_files_selected
                     tristate: fileVM.some_files_selected && !fileVM.all_files_selected
                     
-                    onCheckedChanged: {
-                        // 只有当复选框状态与全选状态不一致时才调用
-                        if (checked !== fileVM.all_files_selected) {
-                            console.log("全选复选框状态改变:", checked)
-                            fileVM.select_all_files(checked)
+                    onClicked: {
+                        // 明确处理点击事件，而不是依赖checkedChanged
+                        if (checkState === Qt.PartiallyChecked) {
+                            // 当处于三态时，强制设置为选中状态
+                            fileVM.select_all_files(true)
+                        } else {
+                            // 根据当前状态决定下一步操作
+                            if (fileVM.all_files_selected) {
+                                // 当前全选，点击后取消全选
+                                fileVM.select_all_files(false)
+                            } else {
+                                // 当前未全选，点击后全选
+                                fileVM.select_all_files(true)
+                            }
                         }
                     }
                 }
