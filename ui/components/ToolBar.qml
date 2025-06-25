@@ -162,7 +162,8 @@ Rectangle {
                     console.log("点击下载文件")
                     if (fileVM && downloadVM) {
                         // 获取当前选中的文件列表进行下载
-                        var selectedFiles = fileVM.get_selected_files()                      
+                        var selectedFiles = fileVM.get_selected_files()    
+                        console.log("获取到的文件列表:", JSON.stringify(selectedFiles))  // 新增日志输出                  
                         if (selectedFiles && selectedFiles.length > 0) {
                             downloadVM.download_multiple_files(selectedFiles)
                         } else {

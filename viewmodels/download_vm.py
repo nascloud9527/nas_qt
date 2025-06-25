@@ -33,11 +33,16 @@ class DownloadViewModel(QObject):
         except PermissionError:
             # 如果无法创建Downloads目录，使用当前工作目录
             self._default_save_dir = os.getcwd()
+        
+        # 连接下载完成信号到处理方法，确保队列下载功能正常工作
+        self.downloadFinished.connect(self.on_download_finished)
     
     @Slot(str)
     def set_token(self, token: str):
         """设置认证 token"""
+        print(f"DownloadViewModel.set_token: 设置token={token[:10] if token else 'None'}...")
         self._download_api.set_token(token)
+        print(f"DownloadViewModel.set_token: token设置完成")
     
     @Slot(str, str)
     @Slot(str)
@@ -97,11 +102,25 @@ class DownloadViewModel(QObject):
         os.makedirs(target_dir, exist_ok=True)
         
         # 将文件添加到下载队列
-        for file_info in file_list:
+        added_count = 0
+        for i, file_info in enumerate(file_list):
             relpath = file_info.get("relPath", "")
-            if relpath and not file_info.get("isDir", False):
+            is_dir = file_info.get("isDir", False)
+            name = file_info.get("name", "Unknown")
+            
+            print(f"  处理文件 {i+1}: {name} (路径: {relpath}, 是否目录: {is_dir})")
+            
+            if relpath and not is_dir:
                 save_path = os.path.join(target_dir, os.path.basename(relpath))
                 self._download_queue.append((relpath, save_path))
+                added_count += 1
+                print(f"    添加到下载队列: {save_path}")
+            elif is_dir:
+                print(f"    跳过目录: {name}")
+            else:
+                print(f"    跳过无效文件: {name} (路径为空)")
+        
+        print(f"download_multiple_files: 共添加 {added_count} 个文件到下载队列")
         
         if not self._is_downloading:
             self.start_download_queue()

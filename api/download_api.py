@@ -16,59 +16,64 @@ class DownloadAPI:
 
     def set_token(self, token: str):
         """设置认证 token"""
+        print(f"DownloadAPI.set_token: 设置token={token[:10] if token else 'None'}...")
         self.token = token
         self.headers["Authorization"] = f"Bearer {token}"
+        print(f"DownloadAPI.set_token: 认证头已设置为={self.headers.get('Authorization', 'None')}")
 
     def download_file(self, relpath: str, save_path: str = None) -> dict:
         """
-        下载指定路径的文件
+        下载指定路径的文件（修复 URL 编码问题）
         Args:
-            relpath: 文件的相对路径
-            save_path: 保存到本地的路径（可选），不传则只返回二进制内容
-        Returns:
-            dict: {success, status_code, data/filename/content, error}
+            relpath: 文件的相对路径（如 "admin/图片/file.jpg"）
+            save_path: 保存到本地的路径（可选）
         """
+        # 使用 params 参数让 requests 正确处理 URL 编码
         url = f"{config.get_api_base_url()}/api/download"
         params = {"relpath": relpath}
+        
+        print(f"download_file: 下载文件 relpath={relpath}")
+        print(f"download_file: 请求URL={url}")
+        print(f"download_file: 请求参数={params}")
+        print(f"download_file: 认证头={self.headers.get('Authorization', 'None')}")
+        
         try:
             response = requests.get(url, headers=self.headers, params=params, stream=True)
+            print(f"download_file: 实际请求URL={response.url}")
+            print(f"download_file: 响应状态码={response.status_code}")
+            
             if response.status_code == 200:
-                # 获取文件名
-                content_disposition = response.headers.get('Content-Disposition', '')
+                # 获取文件名（优先从 Content-Disposition 头获取）
                 filename = relpath.split('/')[-1]
+                content_disposition = response.headers.get('Content-Disposition', '')
                 if 'filename=' in content_disposition:
                     filename = content_disposition.split('filename=')[-1].strip('"')
+                
+                # 确定保存路径
+                file_path = save_path if save_path else filename
+                
+                print(f"download_file: 保存文件到 {file_path}")
+                
                 # 保存文件
-                if save_path:
-                    file_path = save_path
-                else:
-                    file_path = filename
                 with open(file_path, 'wb') as f:
                     for chunk in response.iter_content(chunk_size=8192):
                         if chunk:
                             f.write(chunk)
                 return {
                     "success": True,
-                    "status_code": 200,
                     "filename": file_path,
                     "error": None
                 }
             else:
-                # 尝试解析json错误信息
-                try:
-                    err = response.json().get('error', response.text)
-                except Exception:
-                    err = response.text
+                error = response.json().get("error", response.text) if response.text else "Unknown error"
+                print(f"download_file: 下载失败 - {error}")
                 return {
                     "success": False,
-                    "status_code": response.status_code,
-                    "data": None,
-                    "error": err
+                    "error": f"HTTP {response.status_code}: {error}"
                 }
-        except requests.exceptions.RequestException as e:
+        except Exception as e:
+            print(f"download_file: 异常 - {e}")
             return {
                 "success": False,
-                "status_code": 0,
-                "data": None,
                 "error": str(e)
             }

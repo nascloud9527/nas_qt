@@ -137,12 +137,21 @@ class FileViewModel(QObject):
         else:
             print("文件列表为空，无法执行全选操作")
     
-    @Slot()
+    @Slot(result=list)  # 显式声明返回类型为 list
     def get_selected_files(self):
         """获取选中的文件列表"""
         if not self._file_list:
+            print("get_selected_files: 文件列表为空")
             return []
-        return [file_item for file_item in self._file_list if file_item.get("selected", False)]
+        
+        selected_files = [file_item for file_item in self._file_list if file_item.get("selected", False)]
+        print(f"get_selected_files: 找到 {len(selected_files)} 个选中文件")
+        
+        # 打印选中文件的详细信息
+        for i, file_item in enumerate(selected_files):
+            print(f"  选中文件 {i}: {file_item.get('name', 'Unknown')}, selected={file_item.get('selected', False)}")
+        
+        return selected_files
     
     @Slot(int)
     def open_file_or_folder(self, index: int):
