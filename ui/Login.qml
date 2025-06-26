@@ -172,31 +172,31 @@ Item {
         }
 
         // 主题切换按钮（右上角）
-        Button {
-            anchors.top: parent.top
-            anchors.right: parent.right
-            anchors.margins: 16
-            width: 40
-            height: 40
+        // Button {
+        //     anchors.top: parent.top
+        //     anchors.right: parent.right
+        //     anchors.margins: 16
+        //     width: 40
+        //     height: 40
             
-            background: Rectangle {
-                radius: 20
-                color: themeManager.surfaceColor
-                border.color: themeManager.dividerColor
-                border.width: 1
-            }
+        //     background: Rectangle {
+        //         radius: 20
+        //         color: themeManager.surfaceColor
+        //         border.color: themeManager.dividerColor
+        //         border.width: 1
+        //     }
             
-            contentItem: Text {
-                text: themeManager.isDarkTheme ? "☀️" : "🌙"
-                font.pixelSize: 16
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-            }
+        //     contentItem: Text {
+        //         text: themeManager.isDarkTheme ? "☀️" : "🌙"
+        //         font.pixelSize: 16
+        //         horizontalAlignment: Text.AlignHCenter
+        //         verticalAlignment: Text.AlignVCenter
+        //     }
             
-            onClicked: {
-                themeManager.toggleTheme()
-            }
-        }
+        //     onClicked: {
+        //         themeManager.toggleTheme()
+        //     }
+        // }
     }
 
     Connections {

@@ -66,36 +66,65 @@ Rectangle {
             // 传输按钮，带悬停提示
             Button {
                 id: transferButton
-                height: 32
-                width: 32
-                padding: 4
+                height: 36
+                width: 65 // 增加宽度以容纳文本
+                padding: 8
 
+                // 按钮背景样式
                 background: Rectangle {
-                    radius: 16
-                    color: "transparent"
-                    border.color: themeManager.textSecondaryColor
+                    radius: 18  // 圆角
+                    color: transferButton.hovered ? themeManager.primaryColor : "transparent"
+                    border.color: transferButton.hovered ? themeManager.primaryColor : themeManager.textSecondaryColor
                     border.width: 1
+                    
+                    // 添加悬停效果
+                    Behavior on color {
+                        ColorAnimation { duration: 200 }
+                    }
                 }
 
+                // 按钮内容
                 contentItem: Row {
-                    spacing: 2
                     anchors.centerIn: parent
+                    spacing: 4
                     
-                    // 上传箭头
-                    Text {
-                        text: "↑"
-                        font.pixelSize: 14
-                        font.weight: Font.Bold
-                        color: themeManager.textPrimaryColor
-                        verticalAlignment: Text.AlignVCenter
+                    // 图标容器
+                    Rectangle {
+                        width: 20
+                        height: 20
+                        radius: 10
+                        color: transferButton.hovered ? "white" : themeManager.primaryColor + "20"  // 半透明背景
+                        
+                        Row {
+                            anchors.centerIn: parent
+                            spacing: 1
+                            
+                            // 上传箭头
+                            Text {
+                                text: "↑"
+                                font.pixelSize: 10
+                                font.weight: Font.Bold
+                                color: transferButton.hovered ? themeManager.primaryColor : themeManager.textPrimaryColor
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                            
+                            // 下载箭头
+                            Text {
+                                text: "↓"
+                                font.pixelSize: 10
+                                font.weight: Font.Bold
+                                color: transferButton.hovered ? themeManager.primaryColor : themeManager.textPrimaryColor
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                        }
                     }
                     
-                    // 下载箭头
+                    // 文本标签
                     Text {
-                        text: "↓"
-                        font.pixelSize: 14
-                        font.weight: Font.Bold
-                        color: themeManager.textPrimaryColor
+                        text: "传输"
+                        font.pixelSize: 12
+                        font.weight: Font.Medium
+                        color: transferButton.hovered ? "white" : themeManager.textPrimaryColor
                         verticalAlignment: Text.AlignVCenter
                     }
                 }
@@ -103,7 +132,7 @@ Rectangle {
                 // 鼠标悬停提示
                 ToolTip {
                     parent: transferButton
-                    text: "上传、下载"
+                    text: "上传/下载文件"
                     visible: transferButton.hovered
                 }
 
@@ -113,65 +142,65 @@ Rectangle {
                 }
             }
 
-            // 全部按钮
-            Button {
-                id: allButton
-                height: 32
-                width: 32
-                padding: 4
+            // // 全部按钮
+            // Button {
+            //     id: allButton
+            //     height: 32
+            //     width: 32
+            //     padding: 4
 
-                background: Rectangle {
-                    radius: 16
-                    color: "transparent"
-                    border.color: themeManager.textSecondaryColor
-                    border.width: 1
-                }
+            //     background: Rectangle {
+            //         radius: 16
+            //         color: "transparent"
+            //         border.color: themeManager.textSecondaryColor
+            //         border.width: 1
+            //     }
 
-                contentItem: Grid {
-                    anchors.centerIn: parent
-                    columns: 2
-                    rows: 2
-                    spacing: 1
+            //     contentItem: Grid {
+            //         anchors.centerIn: parent
+            //         columns: 2
+            //         rows: 2
+            //         spacing: 1
                     
-                    // 四个小方块表示全部/网格视图
-                    Rectangle {
-                        width: 3
-                        height: 3
-                        radius: 1
-                        color: themeManager.textPrimaryColor
-                    }
-                    Rectangle {
-                        width: 3
-                        height: 3
-                        radius: 1
-                        color: themeManager.textPrimaryColor
-                    }
-                    Rectangle {
-                        width: 3
-                        height: 3
-                        radius: 1
-                        color: themeManager.textPrimaryColor
-                    }
-                    Rectangle {
-                        width: 3
-                        height: 3
-                        radius: 1
-                        color: themeManager.textPrimaryColor
-                    }
-                }
+            //         // 四个小方块表示全部/网格视图
+            //         Rectangle {
+            //             width: 3
+            //             height: 3
+            //             radius: 1
+            //             color: themeManager.textPrimaryColor
+            //         }
+            //         Rectangle {
+            //             width: 3
+            //             height: 3
+            //             radius: 1
+            //             color: themeManager.textPrimaryColor
+            //         }
+            //         Rectangle {
+            //             width: 3
+            //             height: 3
+            //             radius: 1
+            //             color: themeManager.textPrimaryColor
+            //         }
+            //         Rectangle {
+            //             width: 3
+            //             height: 3
+            //             radius: 1
+            //             color: themeManager.textPrimaryColor
+            //         }
+            //     }
 
-                // 鼠标悬停提示
-                ToolTip {
-                    parent: allButton
-                    text: "全部文件"
-                    visible: allButton.hovered
-                }
+            //     // 鼠标悬停提示
+            //     ToolTip {
+            //         parent: allButton
+            //         text: "全部文件"
+            //         visible: allButton.hovered
+            //     }
 
-                onClicked: {
-                    console.log("点击了全部按钮，可处理对应逻辑");
-                    // 可扩展点击后展示全部内容等业务逻辑
-                }
-            }
+            //     onClicked: {
+            //         console.log("点击了全部按钮，可处理对应逻辑");
+            //         // 可扩展点击后展示全部内容等业务逻辑
+            //     }
+            // }
         }
 
         // 原右侧占位调整，因为上面新增了功能按钮区域，这里可去掉或者按需调整
