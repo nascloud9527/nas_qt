@@ -142,65 +142,6 @@ Rectangle {
                 }
             }
 
-            // // 全部按钮
-            // Button {
-            //     id: allButton
-            //     height: 32
-            //     width: 32
-            //     padding: 4
-
-            //     background: Rectangle {
-            //         radius: 16
-            //         color: "transparent"
-            //         border.color: themeManager.textSecondaryColor
-            //         border.width: 1
-            //     }
-
-            //     contentItem: Grid {
-            //         anchors.centerIn: parent
-            //         columns: 2
-            //         rows: 2
-            //         spacing: 1
-                    
-            //         // 四个小方块表示全部/网格视图
-            //         Rectangle {
-            //             width: 3
-            //             height: 3
-            //             radius: 1
-            //             color: themeManager.textPrimaryColor
-            //         }
-            //         Rectangle {
-            //             width: 3
-            //             height: 3
-            //             radius: 1
-            //             color: themeManager.textPrimaryColor
-            //         }
-            //         Rectangle {
-            //             width: 3
-            //             height: 3
-            //             radius: 1
-            //             color: themeManager.textPrimaryColor
-            //         }
-            //         Rectangle {
-            //             width: 3
-            //             height: 3
-            //             radius: 1
-            //             color: themeManager.textPrimaryColor
-            //         }
-            //     }
-
-            //     // 鼠标悬停提示
-            //     ToolTip {
-            //         parent: allButton
-            //         text: "全部文件"
-            //         visible: allButton.hovered
-            //     }
-
-            //     onClicked: {
-            //         console.log("点击了全部按钮，可处理对应逻辑");
-            //         // 可扩展点击后展示全部内容等业务逻辑
-            //     }
-            // }
         }
 
         // 原右侧占位调整，因为上面新增了功能按钮区域，这里可去掉或者按需调整
