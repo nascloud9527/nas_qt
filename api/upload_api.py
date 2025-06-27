@@ -104,7 +104,7 @@ class UploadAPI:
         Returns:
             Dict: 包含上传结果的响应数据
         """
-        url = f"{config.get_api_base_url()}/api/upload"
+        url = f"{config.get_api_base_url()}/api/file/upload"
         
         # 构建查询参数
         params = {}

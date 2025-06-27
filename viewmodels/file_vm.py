@@ -1,6 +1,7 @@
 from PySide6.QtCore import QObject, Signal, Slot, Property
 from api.file_api import FileAPI
 from viewmodels.upload_vm import UploadViewModel
+# from vlc_player import MyVLCPlayer
 import subprocess
 import platform
 import os
@@ -149,30 +150,34 @@ class FileViewModel(QObject):
     
     @Slot(str)
     def open_file_with_system(self, relative_path: str):
-        """使用系统默认程序打开文件"""
+        """使用系统默认程序打开文件；若为视频则调用系统 ffplay 播放"""
         try:
-            # 获取完整的文件路径
             full_path = config.get_full_file_path(relative_path)
             print(f"尝试打开文件: {full_path}")
-            
-            # 检查文件是否存在
+
             if not os.path.exists(full_path):
                 print(f"文件不存在: {full_path}")
                 return
-            
-            system = platform.system()
-            
-            if system == "Windows":
-                os.startfile(full_path)
-            elif system == "Darwin":  # macOS
-                subprocess.run(["open", full_path], check=True)
-            else:  # Linux
-                subprocess.run(["xdg-open", full_path], check=True)
-                
+
+            # 根据扩展名判断是否为视频
+            ext = os.path.splitext(full_path)[-1].lower().strip(".")
+            video_exts = ["mp4", "avi", "mov", "wmv", "flv", "mkv", "webm"]
+
+            if ext in video_exts:
+                # 用系统全局 ffplay
+                try:
+                    subprocess.Popen(["ffplay", full_path])
+                except FileNotFoundError:
+                    print("ffplay 未安装，改用系统默认打开")
+                    subprocess.run(["xdg-open", full_path], check=True)
+                return
+
+            # 非视频，系统默认打开
+            subprocess.run(["xdg-open", full_path], check=True)
+
         except Exception as e:
             print(f"无法打开文件 {relative_path}: {e}")
-            # 这里可以发出错误信号给UI显示
-    
+
     @Slot()
     def go_to_parent_directory(self):
         """返回上一级目录"""

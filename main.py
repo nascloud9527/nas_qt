@@ -7,6 +7,7 @@ from viewmodels.theme_manager import ThemeManager
 from viewmodels.file_vm import FileViewModel
 from viewmodels.usb_monitor import USBMonitor
 from viewmodels.download_vm import DownloadViewModel
+# from viewmodels.vlc_player import MyVLCPlayer
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -26,12 +27,14 @@ if __name__ == "__main__":
     file_vm = FileViewModel()
     usb_monitor = USBMonitor()
     download_vm = DownloadViewModel() 
-    
+    # vlc_player = MyVLCPlayer()
+
     engine.rootContext().setContextProperty("loginVM", login_vm)
     engine.rootContext().setContextProperty("themeManager", theme_manager)
     engine.rootContext().setContextProperty("fileVM", file_vm)
     engine.rootContext().setContextProperty("usbMonitor", usb_monitor)
     engine.rootContext().setContextProperty("downloadVM", download_vm)
+    # engine.rootContext().setContextProperty("vlcPlayer", vlc_player)
 
     # 加载主窗口
     engine.load("ui/MainWindow.qml")
