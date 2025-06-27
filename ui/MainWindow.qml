@@ -76,10 +76,6 @@ ApplicationWindow {
                 usbNotification.show(deviceName, eventType)
             })
             
-            // 也可以直接监听状态消息变化
-            usbMonitor.statusMessageChanged.connect(function() {
-                console.log("USB状态消息变化:", usbMonitor.status_message)
-            })
         }
     }
 }

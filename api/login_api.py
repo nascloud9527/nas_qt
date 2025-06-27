@@ -15,7 +15,7 @@ class LoginAPI:
     def login(username: str, password: str):
         """用户登录"""
         try:
-            url = f"{config.get_api_base_url()}/api/login"
+            url = f"{config.get_api_base_url()}/api/user/login"
             data = {
                 "username": username,
                 "password": password

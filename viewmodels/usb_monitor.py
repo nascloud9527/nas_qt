@@ -1,6 +1,4 @@
-from PySide6.QtCore import QObject, Signal, Slot, Property, QUrl, QTimer
-from PySide6.QtWebSockets import QWebSocket
-import json
+from PySide6.QtCore import QObject, Signal, Slot, Property, QTimer
 import sys
 import os
 
@@ -18,10 +16,8 @@ class USBMonitor(QObject):
     
     def __init__(self):
         super().__init__()
-        self._socket = QWebSocket()
         self._is_connected = False
         self._status_message = "未连接"
-        self._server_url = "ws://localhost:8080/ws"
         self._usb_api = USBAPI()  # USB API实例
         
         # 添加重连定时器
@@ -29,21 +25,30 @@ class USBMonitor(QObject):
         self._reconnect_timer.timeout.connect(self.connect_to_server)
         self._reconnect_timer.setInterval(5000)  # 5秒
         
-        # 连接信号
-        self._socket.connected.connect(self._on_connected)
-        self._socket.disconnected.connect(self._on_disconnected)
-        self._socket.textMessageReceived.connect(self._on_message)
-        self._socket.errorOccurred.connect(self._on_error)
+        # 注册D-Bus事件回调
+        self._usb_api.add_event_callback(self._on_dbus_event)
         
-        # 尝试连接远程服务器
+        # 尝试连接D-Bus服务
         self.connect_to_server()
     
-    def _handle_usb_event(self, event_type, device_id, device_info):
+    def _handle_usb_event(self, event_type, device_info):
         """处理USB事件"""
-        event_text = "插入" if event_type == "insert" else "移除"
-
-        self.usbEventReceived.emit(event_type, device_info)
-        self._update_status(f"USB设备{event_text}: {device_info}")
+        event_text = "插入" if event_type == "mount" else "移除"
+        
+        # 从设备信息中提取设备名称
+        device_name = device_info.get("device", "未知设备") if isinstance(device_info, dict) else str(device_info)
+        
+        self.usbEventReceived.emit(event_type, device_name)
+        self._update_status(f"USB设备{event_text}: {device_name}")
+    
+    def _on_dbus_event(self, event_type, device_info):
+        """D-Bus事件回调"""
+        try:
+            print(f"D-Bus事件: {event_type}, 设备信息: {device_info}")
+            self._handle_usb_event(event_type, device_info)
+        except Exception as e:
+            print(f"处理D-Bus事件时出错: {e}")
+            self._update_status(f"D-Bus事件处理错误: {str(e)}")
     
     def _update_status(self, message):
         """更新状态消息并发送信号"""
@@ -57,113 +62,127 @@ class USBMonitor(QObject):
     
     @Slot()
     def connect_to_server(self):
-        """连接到USB监控服务器"""
-        if not self._is_connected:
-            self._socket.open(QUrl(self._server_url))
-            self._update_status("正在连接...")
+        """连接到USB监控服务（D-Bus）"""
+        try:
+            if not self._is_connected:
+                # 检查D-Bus服务是否可用
+                if not self._usb_api.is_service_available():
+                    self._is_connected = False
+                    self._update_status("D-Bus服务不可用，请确保USB监控服务已启动")
+                    self.connectionStatusChanged.emit()
+                    print("D-Bus服务不可用，5秒后尝试重新连接...")
+                    # 启动重连定时器
+                    self._reconnect_timer.start()
+                    return
+                
+                # 尝试获取设备列表来测试连接
+                result = self._usb_api.get_usb_devices()
+                if result["success"]:
+                    self._is_connected = True
+                    self._update_status("已连接到 USB D-Bus 服务")
+                    self.connectionStatusChanged.emit()
+                    print("USB D-Bus 服务连接成功")
+                    # 连接成功后停止重连定时器
+                    self._reconnect_timer.stop()
+                else:
+                    self._is_connected = False
+                    self._update_status(f"连接失败: {result.get('error', '未知错误')}")
+                    self.connectionStatusChanged.emit()
+                    # 启动重连定时器
+                    self._reconnect_timer.start()
+        except Exception as e:
+            self._is_connected = False
+            self._update_status(f"连接错误: {str(e)}")
+            self.connectionStatusChanged.emit()
+            print(f"USB D-Bus 服务连接错误: {e}")
+            # 启动重连定时器
+            self._reconnect_timer.start()
     
     @Slot()
     def disconnect_from_server(self):
         """断开与服务器的连接"""
         if self._is_connected:
-            self._socket.close()
+            try:
+                self._usb_api.stop_monitoring()
+                self._is_connected = False
+                self._update_status("已断开连接")
+                self.connectionStatusChanged.emit()
+            except Exception as e:
+                print(f"断开连接时出错: {e}")
     
-    def _on_connected(self):
-        """连接成功回调"""
-        self._is_connected = True
-        self._update_status("已连接到 USB 后台服务")
-        self.connectionStatusChanged.emit()
-        print("USB监控服务连接成功")
-        # 连接成功后停止重连定时器
-        self._reconnect_timer.stop()
-    
-    def _on_disconnected(self):
-        """连接断开回调"""
-        self._is_connected = False
-        self._update_status("连接已断开，5秒后尝试重新连接...")
-        self.connectionStatusChanged.emit()
-        print("USB监控服务连接断开，5秒后尝试重新连接...")
-        # 启动重连定时器
-        self._reconnect_timer.start()
-    
-    def _on_error(self, error):
-        """连接错误回调"""
-        self._is_connected = False
-        self._update_status(f"连接错误: {error}")
-        self.connectionStatusChanged.emit()
-        print(f"USB监控服务连接错误: {error}")
-        # 启动重连定时器
-        self._reconnect_timer.start()
-    
-    def _on_message(self, message):
-        """接收消息回调"""
+    @Slot()
+    def start_monitoring(self):
+        """开始监听USB设备事件"""
+        if not self._usb_api.is_service_available():
+            self._update_status("D-Bus服务不可用，无法开始监听")
+            return
+            
         try:
-            # print(f"收到WebSocket消息: {message}")
-            # 尝试解析JSON消息
-            data = json.loads(message)
-            event_type = data.get("type", "unknown")
-            device_name = data.get("device", "未知设备")
-            
-            # print(f"解析后的消息 - 事件类型: {event_type}, 设备名称: {device_name}")
-            
-            if event_type in ["insert", "remove"]:
-                # print(f"触发USB事件信号: {event_type}, {device_name}")
-                self._handle_usb_event(event_type, None, device_name)
+            success = self._usb_api.start_monitoring()
+            if success:
+                self._update_status("开始监听USB设备事件")
             else:
-                # print(f"未知USB事件类型: {event_type}")
-                self._update_status(f"未知USB事件: {message}")
-            
-        except json.JSONDecodeError as e:
-            # print(f"JSON解析错误，尝试解析纯文本消息: {e}")
-            # 如果不是JSON格式，尝试解析纯文本消息
-            self._parse_text_message(message)
+                self._update_status("启动监听失败")
         except Exception as e:
-            # print(f"处理WebSocket消息时出错: {e}")
-            self._update_status(f"消息处理错误: {str(e)}")
+            self._update_status(f"启动监听失败: {str(e)}")
     
-    def _parse_text_message(self, message):
-        """解析纯文本格式的USB事件消息"""
+    @Slot()
+    def stop_monitoring(self):
+        """停止监听USB设备事件"""
         try:
-            # print(f"解析纯文本消息: {message}")
-            
-            # 根据消息内容判断事件类型
-            if "❌ 移除设备:" in message:
-                # 移除设备消息
-                device_name = message.split("❌ 移除设备:")[1].strip()
-                # print(f"检测到设备移除事件: {device_name}")
-                self._handle_usb_event("remove", None, device_name)
-            elif "📦 插入设备:" in message:
-                # 插入设备消息
-                device_part = message.split("📦 插入设备:")[1].strip()
-                # 处理可能包含容量信息的设备名称
-                if "(" in device_part:
-                    device_name = device_part.split("(")[0].strip()
-                else:
-                    device_name = device_part
-                # print(f"检测到设备插入事件: {device_name}")
-                self._handle_usb_event("insert", None, device_name)
+            success = self._usb_api.stop_monitoring()
+            if success:
+                self._update_status("停止监听USB设备事件")
             else:
-                # print(f"无法识别的消息格式: {message}")
-                self._update_status(f"收到消息: {message}")
-                
+                self._update_status("停止监听失败")
         except Exception as e:
-            # print(f"解析纯文本消息时出错: {e}")
-            self._update_status(f"收到消息: {message}")
+            self._update_status(f"停止监听失败: {str(e)}")
     
-    @Slot(str)
-    def set_server_url(self, url):
-        """设置服务器URL"""
-        if self._server_url != url:
-            self._server_url = url
-            if self._is_connected:
-                self.disconnect_from_server()
-                self.connect_to_server()
+    @Slot()
+    def check_service_status(self):
+        """检查D-Bus服务状态"""
+        is_available = self._usb_api.is_service_available()
+        if is_available:
+            self._update_status("D-Bus服务可用")
+        else:
+            self._update_status("D-Bus服务不可用")
+        return is_available
     
     @Slot()
     def reconnect(self):
         """重新连接"""
         self.disconnect_from_server()
         self.connect_to_server()
+    
+    @Slot()
+    def get_usb_devices(self):
+        """获取USB设备列表"""
+        try:
+            result = self._usb_api.get_usb_devices()
+            if result["success"]:
+                self._update_status(f"获取到 {len(result['data'])} 个USB设备")
+                return result["data"]
+            else:
+                self._update_status(f"获取USB设备失败: {result.get('error', '未知错误')}")
+                return []
+        except Exception as e:
+            self._update_status(f"获取USB设备时出错: {str(e)}")
+            return []
+    
+    @Slot()
+    def get_usb_info(self):
+        """获取USB设备信息"""
+        try:
+            result = self._usb_api.get_usb_info()
+            if result["success"]:
+                self._update_status("获取USB设备信息成功")
+                return result["data"]
+            else:
+                self._update_status(f"获取USB设备信息失败: {result.get('error', '未知错误')}")
+                return {}
+        except Exception as e:
+            self._update_status(f"获取USB设备信息时出错: {str(e)}")
+            return {}
     
     # 属性定义
     @Property(bool, notify=connectionStatusChanged)

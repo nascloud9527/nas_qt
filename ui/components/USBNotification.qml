@@ -97,11 +97,11 @@ Rectangle {
                 width: 24
                 height: 24
                 radius: 12
-                color: eventType === "insert" ? "#4CAF50" : "#F44336"
+                color: eventType === "mount" ? "#4CAF50" : "#F44336"
                 
                 Text {
                     anchors.centerIn: parent
-                    text: eventType === "insert" ? "✓" : "✗"
+                    text: eventType === "mount" ? "✓" : "✗"
                     color: "white"
                     font.pixelSize: 14
                     font.bold: true
@@ -110,7 +110,7 @@ Rectangle {
             
             // 标题
             Text {
-                text: eventType === "insert" ? "USB设备插入" : "USB设备移除"
+                text: eventType === "mount" ? "USB设备插入" : "USB设备移除"
                 font.pixelSize: 16
                 font.bold: true
                 color: "#333333"

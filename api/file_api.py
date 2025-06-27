@@ -31,7 +31,7 @@ class FileAPI:
         Returns:
             Dict: 包含文件列表的响应数据
         """
-        url = f"{config.get_api_base_url()}/api/files"
+        url = f"{config.get_api_base_url()}/api/file/files"
         
         # 构建查询参数
         params = {}

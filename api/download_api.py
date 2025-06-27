@@ -29,7 +29,7 @@ class DownloadAPI:
             save_path: 保存到本地的路径（可选）
         """
         # 使用 params 参数让 requests 正确处理 URL 编码
-        url = f"{config.get_api_base_url()}/api/download"
+        url = f"{config.get_api_base_url()}/api/file/download"
         params = {"relpath": relpath}
         
         print(f"download_file: 下载文件 relpath={relpath}")
