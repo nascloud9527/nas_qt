@@ -40,6 +40,9 @@ ApplicationWindow {
                         // 为下载ViewModel设置token
                         downloadVM.set_token(loginVM.get_token())
                         
+                        // 为类型文件ViewModel设置token
+                        typefilesVM.set_token(loginVM.get_token())
+                        
                         // 加载文件列表（使用用户名作为目录）
                         fileVM.load_file_list("")
                         

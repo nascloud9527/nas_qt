@@ -27,7 +27,7 @@ Rectangle {
             spacing: 8
 
             Repeater {
-                model: ["全部", "最近", "视频", "图片", "文档"]
+                model: ["全部", "最近", "视频", "图片", "文档","音频"]
                 
                 Button {
                     text: modelData
@@ -53,6 +53,20 @@ Rectangle {
                     onClicked: {
                         navigationBar.currentIndex = index
                         console.log("切换到:", modelData)
+                        // 只对接 视频、图片、文档、音频
+                        if (modelData === "视频") {
+                            typefilesVM.fetchTypeFiles("video", 1, 30)
+                        } else if (modelData === "图片") {
+                            typefilesVM.fetchTypeFiles("photo", 1, 30)
+                        } else if (modelData === "文档") {
+                            typefilesVM.fetchTypeFiles("document", 1, 30)
+                        } else if (modelData === "音频") {
+                            typefilesVM.fetchTypeFiles("audio", 1, 30)
+                        }
+                        // // 延时50ms输出，确保Python已更新lastError
+                        Qt.callLater(function() {
+                            console.log("接口错误信息: " + typefilesVM.lastError)
+                        })
                     }
                 }
             }
