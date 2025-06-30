@@ -42,13 +42,13 @@ class TypeFilesViewModel(QObject):
     @staticmethod
     def transform_file_data(file_data: dict) -> dict:
         return {
-            "id": file_data.get("ID", ""),
-            "name": file_data.get("Filename", ""),
-            "relPath": file_data.get("RelPath", ""),
-            "owner": file_data.get("Owner", ""),
-            "isPublic": file_data.get("IsPublic", False),
-            "size": file_data.get("Size", 0),
-            "type": file_data.get("Type", ""),
-            "createdAt": file_data.get("CreatedAt", ""),
-            "updatedAt": file_data.get("UpdatedAt", ""),
+            "id": str(file_data.get("ID", "")),
+            "name": str(file_data.get("Filename", "")),
+            "relPath": str(file_data.get("RelPath", "")),
+            "owner": str(file_data.get("Owner", "")),
+            "isPublic": bool(file_data.get("IsPublic", False)),
+            "size": int(file_data.get("Size", 0)),
+            "type": str(file_data.get("Type", "")),
+            "createdAt": str(file_data.get("CreatedAt", "")),
+            "updatedAt": str(file_data.get("UpdatedAt", "")),
         }

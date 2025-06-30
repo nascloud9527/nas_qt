@@ -127,7 +127,7 @@ Rectangle {
                 anchors.bottom: parent.bottom
                 anchors.margins: 8
                 
-                model: typefilesVM ? typefilesVM.fileList : []
+                model: typefilesVM ? typefilesVM.files : []
                 
                 delegate: Rectangle {
                     width: audioList.width
