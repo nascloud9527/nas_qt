@@ -96,6 +96,12 @@ Rectangle {
                     }
                 }
 
+                // 文件图标占位符（对应文件列表项中的图标）
+                Item {
+                    Layout.preferredWidth: 24
+                    Layout.preferredHeight: 24
+                }
+
                 Text {
                     text: "文件名"
                     font.pixelSize: 12
@@ -252,12 +258,15 @@ Rectangle {
                             }
                         }
 
-                        // 文件图标（简化版）
-                        Rectangle {
+                        // 文件图标
+                        Text {
+                            text: getFileTypeIcon(modelData.type)
+                            font.pixelSize: 18
+                            color: themeManager.textSecondaryColor
                             Layout.preferredWidth: 24
                             Layout.preferredHeight: 24
-                            radius: 4
-                            color: getFileTypeColor(modelData.type)
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
                         }
 
                         // 文件名
@@ -330,16 +339,16 @@ Rectangle {
         }
     }
 
-    // 根据文件类型返回颜色
-    function getFileTypeColor(type) {
+    // 根据文件类型返回图标文本
+    function getFileTypeIcon(type) {
         switch(type) {
-            case "文件夹": return themeManager.primaryColor
-            case "文档": return themeManager.primaryColor
-            case "图片": return themeManager.successColor
-            case "视频": return themeManager.warningColor
-            case "音频": return themeManager.accentColor
-            case "压缩包": return "#FF9800"
-            default: return themeManager.textSecondaryColor
+            case "文件夹": return "📁"
+            case "文档": return "📄"
+            case "图片": return "🖼️"
+            case "视频": return "📹"
+            case "音频": return "🎵"
+            case "压缩包": return "📦"
+            default: return "📌"
         }
     }
 } 
