@@ -8,6 +8,7 @@ from viewmodels.file_vm import FileViewModel
 from viewmodels.usb_monitor import USBMonitor
 from viewmodels.download_vm import DownloadViewModel
 from viewmodels.typefiles_vm import TypeFilesViewModel
+from viewmodels.thumbnail_vm import ThumbnailVM
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -28,13 +29,15 @@ if __name__ == "__main__":
     usb_monitor = USBMonitor()
     download_vm = DownloadViewModel() 
     typefiles_vm = TypeFilesViewModel()
-
+    thumbnail_vm = ThumbnailVM()
+    
     engine.rootContext().setContextProperty("loginVM", login_vm)
     engine.rootContext().setContextProperty("themeManager", theme_manager)
     engine.rootContext().setContextProperty("fileVM", file_vm)
     engine.rootContext().setContextProperty("usbMonitor", usb_monitor)
     engine.rootContext().setContextProperty("downloadVM", download_vm)
     engine.rootContext().setContextProperty("typefilesVM", typefiles_vm)
+    engine.rootContext().setContextProperty("thumbnailVM", thumbnail_vm)
 
     # 加载主窗口
     engine.load("ui/MainWindow.qml")

@@ -4,6 +4,7 @@ from api.typefiles_api import TypeFilesAPI
 class TypeFilesViewModel(QObject):
     filesChanged = Signal()
     errorChanged = Signal()
+    filesFetchedSuccess = Signal(str, list)
 
     def __init__(self, token: str = "", parent=None):
         super().__init__(parent)
@@ -18,6 +19,7 @@ class TypeFilesViewModel(QObject):
             files = result["data"].get("files", [])
             self._type_files = [self.transform_file_data(f) for f in files]
             self._last_error = ""
+            self.filesFetchedSuccess.emit(file_type, self._type_files)
         else:
             self._type_files = []
             self._last_error = result.get("error", "未知错误")
