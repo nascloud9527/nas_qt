@@ -104,7 +104,7 @@ Rectangle {
                 cellWidth: 220
                 cellHeight: 200
                 
-                model: typefilesVM ? typefilesVM.fileList : []
+                model: typefilesVM ? typefilesVM.files : []
                 
                 delegate: Rectangle {
                     width: 200
