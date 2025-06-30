@@ -40,6 +40,7 @@ Rectangle {
 
     // 更新缩略图
     function updateThumbnail(filePath, imageUrl) {
+        console.log("赋值缩略图", filePath, imageUrl)
         for (let i = 0; i < videoGrid.count; i++) {
             let item = videoGrid.itemAtIndex(i)
             if (item && item.filePath === filePath) {
@@ -116,6 +117,8 @@ Rectangle {
                     
                     property string filePath: modelData ? modelData.relPath : ""
                     property string thumbnailSource: ""
+
+                    
                     
                     // 缩略图
                     Image {
@@ -128,6 +131,7 @@ Rectangle {
                         anchors.bottomMargin: 4
                         
                         source: parent.thumbnailSource
+                        //   source: "http://localhost:8080/api/thumbnail?fullpath=" + encodeURIComponent(modelData.relPath)
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
                         cache: true
