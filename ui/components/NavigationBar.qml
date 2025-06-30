@@ -27,7 +27,7 @@ Rectangle {
             spacing: 8
 
             Repeater {
-                model: ["全部", "最近", "视频", "图片", "文档","音频"]
+                model: ["视频", "图片", "文档","音频"]
                 
                 Button {
                     text: modelData
