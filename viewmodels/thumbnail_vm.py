@@ -49,27 +49,21 @@ class ThumbnailVM(QObject):
             height=height
         )
 
-        print(f"[ThumbnailVM] get_thumbnail_files 返回类型: {type(result)}")
 
         if isinstance(result, bytes):
-            print(f"[ThumbnailVM] 缩略图字节长度: {len(result)}")
-            print(f"[ThumbnailVM] 数据前10字节: {result[:10]}")
 
             image = QImage.fromData(result)
-            print(f"[ThumbnailVM] QImage.isNull: {image.isNull()}")
 
             if not image.isNull():
                 mime = self._detect_image_mime(result)
-                print(f"[ThumbnailVM] 检测到图片类型: {mime}")
                 data_url = f"data:{mime};base64,{base64.b64encode(result).decode('utf-8')}"
-                print(f"[ThumbnailVM] data_url前100: {data_url[:100]} ...")
                 self.thumbnailReady.emit(file_path, QUrl(data_url))
-                print(f"[ThumbnailVM] thumbnailReady 信号已发射: {file_path}")
+                
             else:
-                print(f"[ThumbnailVM] QImage 解析失败")
+              
                 self.thumbnailFailed.emit(file_path, "Invalid image data")
         else:
-            print(f"[ThumbnailVM] 返回非字节类型: {result}")
+       
             error = result.get("error", "Unknown error") if isinstance(result, dict) else str(result)
             self.thumbnailFailed.emit(file_path, error)
 

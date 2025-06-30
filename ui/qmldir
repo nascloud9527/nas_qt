@@ -4,3 +4,7 @@ NavigationBar 1.0 components/NavigationBar.qml
 ToolBar 1.0 components/ToolBar.qml
 FileListArea 1.0 components/FileListArea.qml
 USBNotification 1.0 components/USBNotification.qml
+VideoPage 1.0 pages/VideoPage.qml
+PhotoPage 1.0 pages/PhotoPage.qml
+DocumentPage 1.0 pages/DocumentPage.qml
+AudioPage 1.0 pages/AudioPage.qml

@@ -21,6 +21,10 @@ if __name__ == "__main__":
     # 添加 components 目录到导入路径
     components_path = os.path.join(ui_path, "components")
     engine.addImportPath(components_path)
+    
+    # 添加 pages 目录到导入路径
+    pages_path = os.path.join(ui_path, "pages")
+    engine.addImportPath(pages_path)
 
     # 创建 ViewModels 并设置为全局上下文属性
     login_vm = LoginViewModel()

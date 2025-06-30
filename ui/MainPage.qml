@@ -22,6 +22,9 @@ Item {
         }
     }
 
+    // 当前页面类型：0=文件列表, 1=视频, 2=图片, 3=文档, 4=音频
+    property int currentPageType: 0
+
     // 处理文件打开信号
     Connections {
         target: fileVM
@@ -145,6 +148,31 @@ Item {
         }
     }
 
+    // 切换页面类型
+    function switchPageType(pageType) {
+        console.log("切换到页面类型:", pageType)
+        currentPageType = pageType
+        
+        // 根据页面类型加载不同的数据
+        switch (pageType) {
+            case 0: // 文件列表
+                // 使用 fileVM 加载当前目录文件
+                break
+            case 1: // 视频
+                typefilesVM.fetchTypeFiles("video", 1, 30)
+                break
+            case 2: // 图片
+                typefilesVM.fetchTypeFiles("photo", 1, 30)
+                break
+            case 3: // 文档
+                typefilesVM.fetchTypeFiles("document", 1, 30)
+                break
+            case 4: // 音频
+                typefilesVM.fetchTypeFiles("audio", 1, 30)
+                break
+        }
+    }
+
     Rectangle {
         anchors.fill: parent
         color: themeManager.backgroundColor
@@ -158,6 +186,15 @@ Item {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 60
                 source: "components/NavigationBar.qml"
+                
+                onItemChanged: {
+                    if (item) {
+                        // 连接导航栏的页面切换信号
+                        item.pageTypeChanged.connect(function(pageType) {
+                            switchPageType(pageType)
+                        })
+                    }
+                }
             }
 
             // 分隔线
@@ -167,25 +204,37 @@ Item {
                 color: themeManager.dividerColor
             }
 
-            // 2. 工具栏
+            // 2. 工具栏（只在文件列表页面显示）
             Loader {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 90
                 source: "components/ToolBar.qml"
+                visible: currentPageType === 0
             }
 
-            // 分隔线
+            // 分隔线（只在文件列表页面显示）
             Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 1
                 color: themeManager.dividerColor
+                visible: currentPageType === 0
             }
 
-            // 3. 文件列表区
+            // 3. 内容区域
             Loader {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                source: "components/FileListArea.qml"
+                
+                source: {
+                    switch (currentPageType) {
+                        case 0: return "components/FileListArea.qml"
+                        case 1: return "pages/VideoPage.qml"
+                        case 2: return "pages/PhotoPage.qml"
+                        case 3: return "pages/DocumentPage.qml"
+                        case 4: return "pages/AudioPage.qml"
+                        default: return "components/FileListArea.qml"
+                    }
+                }
             }
         }
 
