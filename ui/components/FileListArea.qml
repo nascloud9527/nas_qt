@@ -270,13 +270,11 @@ Rectangle {
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
                         
                         // 单击选中文件
-                        onClicked: {
+                        onClicked: function(mouse) {
                             if (mouse.button === Qt.LeftButton) {
-                                // 检测是否按住了Ctrl键
                                 var ctrlPressed = (mouse.modifiers & Qt.ControlModifier) !== 0
                                 fileVM.select_file(index, ctrlPressed)
                             } else if (mouse.button === Qt.RightButton) {
-                                // 右键菜单
                                 contextMenu.contextIndex = index
                                 contextMenu.popup()
                                 console.log("右键菜单触发，文件索引:", index)
@@ -284,7 +282,7 @@ Rectangle {
                         }
                         
                         // 双击打开文件或文件夹
-                        onDoubleClicked: {
+                        onDoubleClicked: function(mouse) {
                             if (mouse.button === Qt.LeftButton) {
                                 fileVM.open_file_or_folder(index)
                             }

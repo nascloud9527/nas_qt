@@ -9,6 +9,10 @@ from viewmodels.usb_monitor import USBMonitor
 from viewmodels.download_vm import DownloadViewModel
 from viewmodels.typefiles_vm import TypeFilesViewModel
 from viewmodels.thumbnail_vm import ThumbnailVM
+from viewmodels.copy_vm import CopyViewModel
+from viewmodels.delete_vm import DeleteViewModel
+from viewmodels.dlna2_vm import Dlna2ViewModel
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -34,7 +38,10 @@ if __name__ == "__main__":
     download_vm = DownloadViewModel() 
     typefiles_vm = TypeFilesViewModel()
     thumbnail_vm = ThumbnailVM()
-    
+    copy_vm = CopyViewModel()
+    delete_vm = DeleteViewModel()
+    dlna2_vm = Dlna2ViewModel()
+
     engine.rootContext().setContextProperty("loginVM", login_vm)
     engine.rootContext().setContextProperty("themeManager", theme_manager)
     engine.rootContext().setContextProperty("fileVM", file_vm)
@@ -42,6 +49,9 @@ if __name__ == "__main__":
     engine.rootContext().setContextProperty("downloadVM", download_vm)
     engine.rootContext().setContextProperty("typefilesVM", typefiles_vm)
     engine.rootContext().setContextProperty("thumbnailVM", thumbnail_vm)
+    engine.rootContext().setContextProperty("copyVM", copy_vm)
+    engine.rootContext().setContextProperty("deleteVM", delete_vm)
+    engine.rootContext().setContextProperty("dlna2VM", dlna2_vm)
 
     # 加载主窗口
     engine.load("ui/MainWindow.qml")
