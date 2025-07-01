@@ -29,7 +29,7 @@ class ThumbnailVM(QObject):
     @Slot(str, int)
     @Slot(str, int, int)
     def requestThumbnail(self, file_path: str, width: Optional[int] = None, height: Optional[int] = None):
-        print(f"[ThumbnailVM] requestThumbnail: file_path={file_path}, width={width}, height={height}")
+        # print(f"[ThumbnailVM] requestThumbnail: file_path={file_path}, width={width}, height={height}")
         result = self._api.get_thumbnail_files(fullpath=file_path, width=width, height=height)
 
         if isinstance(result, bytes):

@@ -26,39 +26,38 @@ Rectangle {
         target: thumbnailVM
         
         function onThumbnailReady(filePath, imageUrl) {
-            console.log("图片缩略图准备完成:", filePath)
+            //   console.log("onThumbnailReady 收到缩略图:", filePath, "imageUrl=", imageUrl)
             // 更新对应的缩略图
-            updateThumbnail(filePath, imageUrl)
+            Qt.callLater(function() {
+                updateThumbnail(filePath, imageUrl)
+            })
         }
         
         function onThumbnailFailed(filePath, error) {
-            console.log("图片缩略图获取失败:", filePath, error)
+            // console.log("图片缩略图获取失败:", filePath, error)
             // 可以设置默认缩略图
-            setDefaultThumbnail(filePath)
+            // setDefaultThumbnail(filePath)
         }
     }
 
     // 更新缩略图
     function updateThumbnail(filePath, imageUrl) {
+        // console.log("updateThumbnail 被调用，filePath =", filePath, "imageUrl =", imageUrl)
+        // console.log("photoGrid.count =", photoGrid.count)
+
         for (let i = 0; i < photoGrid.count; i++) {
             let item = photoGrid.itemAtIndex(i)
+            // console.log("检查 index =", i, "item =", item, item ? item.filePath : "null")
+
             if (item && item.filePath === filePath) {
+                // console.log("updateThumbnail: 为 filePath =", filePath, "赋值 thumbnailSource =", imageUrl)
                 item.thumbnailSource = imageUrl
                 break
             }
         }
     }
 
-    // 设置默认缩略图
-    function setDefaultThumbnail(filePath) {
-        for (let i = 0; i < photoGrid.count; i++) {
-            let item = photoGrid.itemAtIndex(i)
-            if (item && item.filePath === filePath) {
-                item.thumbnailSource = "qrc:/icons/image_default.png" // 默认图片图标
-                break
-            }
-        }
-    }
+
 
     ColumnLayout {
         anchors.fill: parent
@@ -101,13 +100,13 @@ Rectangle {
             GridView {
                 id: photoGrid
                 anchors.fill: parent
-                cellWidth: 200
+                cellWidth: 220
                 cellHeight: 200
                 
                 model: typefilesVM ? typefilesVM.files : []
                 
                 delegate: Rectangle {
-                    width: 180
+                    width: 200
                     height: 180
                     radius: 8
                     color: themeManager.surfaceColor
@@ -120,8 +119,12 @@ Rectangle {
                     // 缩略图
                     Image {
                         id: thumbnailImage
-                        anchors.fill: parent
+                        anchors.top: parent.top
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.bottom: fileNameText.top
                         anchors.margins: 8
+                        anchors.bottomMargin: 4
                         
                         source: parent.thumbnailSource
                         fillMode: Image.PreserveAspectCrop
@@ -143,38 +146,25 @@ Rectangle {
                         }
                     }
                     
-                    // 文件名（悬停时显示）
-                    Rectangle {
+                    // 文件名
+                    Text {
+                        id: fileNameText
                         anchors.left: parent.left
                         anchors.right: parent.right
                         anchors.bottom: parent.bottom
-                        height: 30
-                        color: "#80000000"
-                        opacity: mouseArea.containsMouse ? 1 : 0
+                        anchors.margins: 8
                         
-                        Behavior on opacity {
-                            NumberAnimation { duration: 200 }
-                        }
-                        
-                        Text {
-                            anchors.fill: parent
-                            anchors.margins: 4
-                            
-                            text: modelData ? modelData.name : ""
-                            font.pixelSize: 10
-                            color: "white"
-                            elide: Text.ElideRight
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
+                        text: modelData ? modelData.name : ""
+                        font.pixelSize: 12
+                        color: themeManager.textPrimaryColor
+                        elide: Text.ElideRight
+                        horizontalAlignment: Text.AlignHCenter
                     }
                     
                     // 点击事件
                     MouseArea {
-                        id: mouseArea
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
-                        hoverEnabled: true
                         
                         onClicked: {
                             console.log("点击图片文件:", modelData.name)
@@ -193,9 +183,11 @@ Rectangle {
                     
                     // 组件加载完成后请求缩略图
                     Component.onCompleted: {
+                        // console.log("delegate completed", filePath, "thumbnailSource=", thumbnailSource)
                         if (modelData && modelData.relPath && thumbnailVM) {
-                            thumbnailVM.requestThumbnail(modelData.relPath, 180, 180)
+                            thumbnailVM.requestThumbnail(modelData.relPath, 200, 150)
                         }
+                        // console.log("delegate completed", filePath, "thumbnailSource=", thumbnailSource)
                     }
                 }
             }

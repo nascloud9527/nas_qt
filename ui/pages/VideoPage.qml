@@ -42,15 +42,15 @@ Rectangle {
 
     // 更新缩略图
     function updateThumbnail(filePath, imageUrl) {
-        console.log("updateThumbnail 被调用，filePath =", filePath, "imageUrl =", imageUrl)
-        console.log("videoGrid.count =", videoGrid.count)
+        // console.log("updateThumbnail 被调用，filePath =", filePath, "imageUrl =", imageUrl)
+        // console.log("videoGrid.count =", videoGrid.count)
 
         for (let i = 0; i < videoGrid.count; i++) {
             let item = videoGrid.itemAtIndex(i)
-            console.log("检查 index =", i, "item =", item, item ? item.filePath : "null")
+            // console.log("检查 index =", i, "item =", item, item ? item.filePath : "null")
 
             if (item && item.filePath === filePath) {
-                console.log("updateThumbnail: 为 filePath =", filePath, "赋值 thumbnailSource =", imageUrl)
+                // console.log("updateThumbnail: 为 filePath =", filePath, "赋值 thumbnailSource =", imageUrl)
                 item.thumbnailSource = imageUrl
                 break
             }
@@ -128,7 +128,6 @@ Rectangle {
                         anchors.bottomMargin: 4
                         
                         source: parent.thumbnailSource
-                        //   source: "http://localhost:8080/api/thumbnail?fullpath=" + encodeURIComponent(modelData.relPath)
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
                         cache: true
@@ -189,7 +188,6 @@ Rectangle {
                         if (modelData && modelData.relPath && thumbnailVM) {
                             thumbnailVM.requestThumbnail(modelData.relPath, 200, 150)
                         }
-                        console.log("delegate completed", filePath, "thumbnailSource=", thumbnailSource)
                     }
                 }
             }

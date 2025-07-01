@@ -91,7 +91,7 @@ Rectangle {
                         
                         // 延时50ms输出，确保Python已更新lastError
                         Qt.callLater(function() {
-                            console.log("接口错误信息: " + typefilesVM.lastError)
+                            // console.log("接口错误信息: " + typefilesVM.lastError)
                         })
                     }
                 }
