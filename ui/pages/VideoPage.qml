@@ -177,7 +177,11 @@ Rectangle {
                             // 双击播放视频
                             if (modelData && modelData.relPath) {
                                 // 调用系统播放器播放视频
-                                // 这里可以调用 fileVM.open_file_with_system(modelData.relPath)
+                                var relPath = modelData.relPath
+                                if (relPath.startsWith("storage/")) {
+                                    relPath = relPath.slice(8)
+                                }
+                                fileVM.open_file_with_system(relPath)
                             }
                         }
                     }
