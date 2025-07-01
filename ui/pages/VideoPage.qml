@@ -26,40 +26,37 @@ Rectangle {
         target: thumbnailVM
         
         function onThumbnailReady(filePath, imageUrl) {
-            console.log("视频缩略图准备完成:", filePath)
+            //   console.log("onThumbnailReady 收到缩略图:", filePath, "imageUrl=", imageUrl)
             // 更新对应的缩略图
-            updateThumbnail(filePath, imageUrl)
+                Qt.callLater(function() {
+                updateThumbnail(filePath, imageUrl)
+            })
         }
         
         function onThumbnailFailed(filePath, error) {
-            console.log("视频缩略图获取失败:", filePath, error)
+            
             // 可以设置默认缩略图
-            setDefaultThumbnail(filePath)
+            // setDefaultThumbnail(filePath)
         }
     }
 
     // 更新缩略图
     function updateThumbnail(filePath, imageUrl) {
-        console.log("赋值缩略图", filePath, imageUrl)
+        console.log("updateThumbnail 被调用，filePath =", filePath, "imageUrl =", imageUrl)
+        console.log("videoGrid.count =", videoGrid.count)
+
         for (let i = 0; i < videoGrid.count; i++) {
             let item = videoGrid.itemAtIndex(i)
+            console.log("检查 index =", i, "item =", item, item ? item.filePath : "null")
+
             if (item && item.filePath === filePath) {
+                console.log("updateThumbnail: 为 filePath =", filePath, "赋值 thumbnailSource =", imageUrl)
                 item.thumbnailSource = imageUrl
                 break
             }
         }
     }
 
-    // 设置默认缩略图
-    function setDefaultThumbnail(filePath) {
-        for (let i = 0; i < videoGrid.count; i++) {
-            let item = videoGrid.itemAtIndex(i)
-            if (item && item.filePath === filePath) {
-                item.thumbnailSource = "qrc:/icons/video_default.png" // 默认视频图标
-                break
-            }
-        }
-    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -188,9 +185,11 @@ Rectangle {
                     
                     // 组件加载完成后请求缩略图
                     Component.onCompleted: {
+                        // console.log("delegate completed", filePath, "thumbnailSource=", thumbnailSource)
                         if (modelData && modelData.relPath && thumbnailVM) {
                             thumbnailVM.requestThumbnail(modelData.relPath, 200, 150)
                         }
+                        console.log("delegate completed", filePath, "thumbnailSource=", thumbnailSource)
                     }
                 }
             }
