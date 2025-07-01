@@ -5,7 +5,7 @@ from typing import Optional
 import base64
 
 class ThumbnailVM(QObject):
-    thumbnailReady = Signal(str, QUrl)  # 文件路径, 缩略图数据URL
+    thumbnailReady = Signal(str, str)  # 文件路径, 缩略图数据URL（字符串）
     thumbnailFailed = Signal(str, str)  # 文件路径, 错误信息
 
     def __init__(self, api: Optional[ThumbnailAPI] = None):
@@ -38,7 +38,7 @@ class ThumbnailVM(QObject):
                 mime = self._detect_image_mime(result)
                 base64_str = base64.b64encode(result).decode("utf-8")
                 data_url = f"data:{mime};base64,{base64_str}"
-                self.thumbnailReady.emit(file_path, QUrl(data_url))
+                self.thumbnailReady.emit(file_path, data_url)  # 这里直接传字符串
             else:
                 self.thumbnailFailed.emit(file_path, "Invalid image data")
         else:
