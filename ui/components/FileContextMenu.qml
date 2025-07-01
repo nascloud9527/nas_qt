@@ -21,6 +21,14 @@ Menu {
             console.log("复制文件:", fileContextMenu.contextIndex)
         }
     }
+
+    MenuItem {
+        text: "移动"
+        onTriggered: {
+            // TODO: 实现移动功能
+            console.log("移动文件:", fileContextMenu.contextIndex)
+        }
+    }
     
     MenuItem {
         text: "删除"
@@ -29,22 +37,30 @@ Menu {
             console.log("删除文件:", fileContextMenu.contextIndex)
         }
     }
-    
-    MenuSeparator {}
-    
+
     MenuItem {
-        text: "重命名"
+        text: "投屏"
         onTriggered: {
-            // TODO: 实现重命名功能
-            console.log("重命名文件:", fileContextMenu.contextIndex)
+            // TODO: 实现投屏功能
+            console.log("投屏文件:", fileContextMenu.contextIndex)
         }
     }
     
-    MenuItem {
-        text: "属性"
-        onTriggered: {
-            // TODO: 实现属性查看功能
-            console.log("查看文件属性:", fileContextMenu.contextIndex)
-        }
-    }
+    // MenuSeparator {}
+    
+    // MenuItem {
+    //     text: "重命名"
+    //     onTriggered: {
+    //         // TODO: 实现重命名功能
+    //         console.log("重命名文件:", fileContextMenu.contextIndex)
+    //     }
+    // }
+    
+    // MenuItem {
+    //     text: "属性"
+    //     onTriggered: {
+    //         // TODO: 实现属性查看功能
+    //         console.log("查看文件属性:", fileContextMenu.contextIndex)
+    //     }
+    // }
 } 

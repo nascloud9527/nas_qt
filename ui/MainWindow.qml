@@ -46,6 +46,15 @@ ApplicationWindow {
                         // 为缩略图ViewModel设置token
                         thumbnailVM.set_token(loginVM.get_token())
                         
+                        // 为复制ViewModel设置token
+                        copyVM.set_token(loginVM.get_token())
+
+                        // 为删除ViewModel设置token
+                        deleteVM.set_token(loginVM.get_token())
+
+                        // 为DLNA2ViewModel设置token
+                        dlna2VM.set_token(loginVM.get_token())
+                        
                         // 加载文件列表（使用用户名作为目录）
                         fileVM.load_file_list("")
                         
