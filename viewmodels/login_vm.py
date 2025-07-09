@@ -32,6 +32,11 @@ class LoginViewModel(QObject):
             error_msg = data.get("error", "登录失败")
             print(f"[Login Error] User: {self._username}, Error: {error_msg}")
             self.loginResult.emit(error_msg)
+
+    @Slot()
+    def goBackToUserSelection(self):
+        # 发送信号通知界面返回到用户选择状态
+        self.showPasswordInput.emit(False)
     
     @Slot(result=str)
     def get_token(self):

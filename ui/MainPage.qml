@@ -173,97 +173,70 @@ Item {
         }
     }
 
-    Rectangle {
+    // 使用背景图片组件
+    BackgroundImage {
         anchors.fill: parent
-        color: themeManager.backgroundColor
+    }
 
-        ColumnLayout {
-            anchors.fill: parent
-            spacing: 0
+    ColumnLayout {
+        anchors.fill: parent
+        spacing: 0
 
-            // 1. 导航区域
-            Loader {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 60
-                source: "components/NavigationBar.qml"
-                
-                onItemChanged: {
-                    if (item) {
-                        // 连接导航栏的页面切换信号
-                        item.pageTypeChanged.connect(function(pageType) {
-                            switchPageType(pageType)
-                        })
-                    }
-                }
-            }
-
-            // 分隔线
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 1
-                color: themeManager.dividerColor
-            }
-
-            // 2. 工具栏（只在文件列表页面显示）
-            Loader {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 90
-                source: "components/ToolBar.qml"
-                visible: currentPageType === 0
-            }
-
-            // 分隔线（只在文件列表页面显示）
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 1
-                color: themeManager.dividerColor
-                visible: currentPageType === 0
-            }
-
-            // 3. 内容区域
-            Loader {
-                
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                
-                source: {
-                    switch (currentPageType) {
-                        case 0: return "components/FileListArea.qml"
-                        case 1: return "pages/VideoPage.qml"
-                        case 2: return "pages/PhotoPage.qml"
-                        case 3: return "pages/DocumentPage.qml"
-                        case 4: return "pages/AudioPage.qml"
-                        default: return "components/FileListArea.qml"
-                    }
+        // 1. 导航区域
+        Loader {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 60
+            source: "components/NavigationBar.qml"
+            
+            onItemChanged: {
+                if (item) {
+                    // 连接导航栏的页面切换信号
+                    item.pageTypeChanged.connect(function(pageType) {
+                        switchPageType(pageType)
+                    })
                 }
             }
         }
 
-        // 主题切换按钮（右上角）
-        // Button {
-        //     anchors.top: parent.top
-        //     anchors.right: parent.right
-        //     anchors.margins: 16
-        //     width: 40
-        //     height: 40
+        // 分隔线
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 1
+            color: themeManager.dividerColor
+        }
+
+        // 2. 工具栏（只在文件列表页面显示）
+        Loader {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 90
+            source: "components/ToolBar.qml"
+            visible: currentPageType === 0
+        }
+
+        // 分隔线（只在文件列表页面显示）
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 1
+            color: themeManager.dividerColor
+            visible: currentPageType === 0
+        }
+
+        // 3. 内容区域
+        Loader {
             
-        //     background: Rectangle {
-        //         radius: 20
-        //         color: themeManager.surfaceColor
-        //         border.color: themeManager.dividerColor
-        //         border.width: 1
-        //     }
+            Layout.fillWidth: true
+            Layout.fillHeight: true
             
-        //     contentItem: Text {
-        //         text: themeManager.isDarkTheme ? "☀️" : "🌙"
-        //         font.pixelSize: 16
-        //         horizontalAlignment: Text.AlignHCenter
-        //         verticalAlignment: Text.AlignVCenter
-        //     }
-            
-        //     onClicked: {
-        //         themeManager.toggleTheme()
-        //     }
-        // }
+            source: {
+                switch (currentPageType) {
+                    case 0: return "components/FileListArea.qml"
+                    case 1: return "pages/VideoPage.qml"
+                    case 2: return "pages/PhotoPage.qml"
+                    case 3: return "pages/DocumentPage.qml"
+                    case 4: return "pages/AudioPage.qml"
+                    default: return "components/FileListArea.qml"
+                }
+            }
+        }
     }
 } 
