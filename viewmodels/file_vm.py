@@ -60,8 +60,10 @@ class FileViewModel(QObject):
         self.loadingChanged.emit()
         self.errorChanged.emit()
         
-        # 如果没有指定目录，使用用户名作为默认目录
-        if not directory and self._current_username:
+        # # 如果没有指定目录，使用用户名作为默认目录
+        # if not directory and self._current_username:
+        #     directory = self._current_username
+        if not directory and self._current_username == "admin":
             directory = self._current_username
         
         # 调用 API 获取文件列表

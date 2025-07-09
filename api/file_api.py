@@ -66,7 +66,7 @@ class FileAPI:
         Returns:
             Dict: 包含创建结果的响应数据
         """
-        url = f"{config.get_api_base_url()}/api/mkdir"
+        url = f"{config.get_api_base_url()}/api/file/mkdir"
         
         data = {
             "rootDir": root_dir,

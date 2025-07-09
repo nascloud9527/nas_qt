@@ -7,6 +7,8 @@ Item {
     height: 300
 
     property bool showPassword: false
+    property int currentUserIndex: 0
+    property var users: ["admin", "public"]
 
     // 添加信号通知登录成功
     signal loginSuccess()
@@ -42,14 +44,43 @@ Item {
                     Layout.alignment: Qt.AlignHCenter
                 }
 
-                // 用户选择按钮区域
+                // 用户选择区域
                 Row {
                     Layout.alignment: Qt.AlignHCenter
                     visible: !showPassword
-                    spacing: 12
+                    spacing: 16
 
+                    // 向左切换按钮
                     Button {
-                        text: "Admin"
+                        text: "←"
+                        width: 40
+                        height: 40
+                        
+                        background: Rectangle {
+                            radius: 20
+                            color: parent.pressed ? themeManager.hoverColor : themeManager.surfaceColor
+                            border.color: themeManager.dividerColor
+                            border.width: 1
+                        }
+                        
+                        contentItem: Text {
+                            text: parent.text
+                            font.pixelSize: 16
+                            font.weight: Font.Bold
+                            color: themeManager.textPrimaryColor
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        
+                        onClicked: {
+                            currentUserIndex = (currentUserIndex - 1 + users.length) % users.length
+                            loginVM.selectUser(users[currentUserIndex])
+                        }
+                    }
+
+                    // 中间用户按钮
+                    Button {
+                        text: users[currentUserIndex]
                         width: 120
                         height: 48
                         
@@ -70,35 +101,36 @@ Item {
                         }
                         
                         onClicked: {
-                            loginVM.selectUser("admin")
+                            loginVM.selectUser(users[currentUserIndex])
                             showPassword = true
                         }
                     }
 
+                    // 向右切换按钮
                     Button {
-                        text: "Public"
-                        width: 120
-                        height: 48
+                        text: "→"
+                        width: 40
+                        height: 40
                         
                         background: Rectangle {
-                            radius: 24
-                            color: parent.pressed ? themeManager.hoverColor : themeManager.backgroundColor
+                            radius: 20
+                            color: parent.pressed ? themeManager.hoverColor : themeManager.surfaceColor
                             border.color: themeManager.dividerColor
                             border.width: 1
                         }
                         
                         contentItem: Text {
                             text: parent.text
-                            font.pixelSize: 14
-                            font.weight: Font.Medium
+                            font.pixelSize: 16
+                            font.weight: Font.Bold
                             color: themeManager.textPrimaryColor
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                         }
                         
                         onClicked: {
-                            loginVM.selectUser("public")
-                            showPassword = true
+                            currentUserIndex = (currentUserIndex + 1) % users.length
+                            loginVM.selectUser(users[currentUserIndex])
                         }
                     }
                 }
@@ -108,6 +140,15 @@ Item {
                     visible: showPassword
                     Layout.fillWidth: true
                     spacing: 16
+
+                    // 显示当前用户
+                    Text {
+                        text: "当前用户: " + users[currentUserIndex]
+                        font.pixelSize: 14
+                        font.weight: Font.Medium
+                        color: themeManager.textPrimaryColor
+                        Layout.alignment: Qt.AlignHCenter
+                    }
 
                     // 密码输入框
                     Rectangle {
