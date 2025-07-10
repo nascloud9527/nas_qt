@@ -3,8 +3,8 @@ import QtQuick.Controls 2.15
 
 ApplicationWindow {
     visible: true
-    width: 800
-    height: 600
+    width: 1366
+    height: 768
     title: "NAS 文件管理系统"
     color: "#FAFAFA"
     
@@ -59,7 +59,8 @@ ApplicationWindow {
                         fileVM.load_file_list("")
                         
                         // 切换到主页面
-                        mainPageLoader.source = "MainPage.qml"
+                        // mainPageLoader.source = "MainPage.qml"
+                        mainPageLoader.source = "MainPage_tv.qml"
                     })
                 }
             }

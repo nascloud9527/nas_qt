@@ -5,12 +5,21 @@ import QtQuick.Layouts 1.15
 Rectangle {
     id: photoPage
     color: themeManager.backgroundColor
+    // 使用背景图片组件
+    BackgroundImage {
+        anchors.fill: parent
+    }
+    
+    // 返回信号
+    signal goBack()
     
     // 添加调试信息
     Component.onCompleted: {
         console.log("PhotoPage 加载完成")
         if (typefilesVM) {
             console.log("typefilesVM 在 PhotoPage 中可用")
+            // 自动获取图片文件数据
+            typefilesVM.fetchTypeFiles("photo", 1, 30)
         } else {
             console.log("typefilesVM 在 PhotoPage 中不可用")
         }
@@ -67,28 +76,50 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 50
-            color: themeManager.surfaceColor
+            color: "transparent"
             
             RowLayout {
                 anchors.fill: parent
                 anchors.margins: 16
                 
+                // 返回按钮
+                Button {
+                    text: "返回"
+                    onClicked: {
+                        // 发送返回信号
+                        photoPage.goBack()
+                    }
+                    background: Rectangle {
+                        radius: 4
+                        color: "#417cd4"  
+                    }
+                    contentItem: Text {
+                        text: "返回"
+                        color: "white"
+                        font.pixelSize: 16
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                }
+                Item { Layout.fillWidth: true }
+                
                 Text {
-                    text: "图片文件"
+                    text: "图片列表"
                     font.pixelSize: 18
                     font.weight: Font.Medium
-                    color: themeManager.textPrimaryColor
+                    // color: themeManager.textPrimaryColor
+                    color: "#FFFFFF"   
                 }
                 
                 Item { Layout.fillWidth: true }
                 
                 // 刷新按钮
-                Button {
-                    text: "刷新"
-                    onClicked: {
-                        typefilesVM.fetchTypeFiles("photo", 1, 30)
-                    }
-                }
+                // Button {
+                //     text: "刷新"
+                //     onClicked: {
+                //         typefilesVM.fetchTypeFiles("photo", 1, 30)
+                //     }
+                // }
             }
         }
 
@@ -100,6 +131,8 @@ Rectangle {
             GridView {
                 id: photoGrid
                 anchors.fill: parent
+                anchors.leftMargin: 32
+                anchors.rightMargin: 32
                 cellWidth: 220
                 cellHeight: 200
                 
@@ -109,7 +142,7 @@ Rectangle {
                     width: 200
                     height: 180
                     radius: 8
-                    color: themeManager.surfaceColor
+                    color: "transparent"
                     border.color: themeManager.dividerColor
                     border.width: 1
                     
@@ -149,6 +182,7 @@ Rectangle {
                     // 文件名
                     Text {
                         id: fileNameText
+                        visible: false // 隐藏文件名
                         anchors.left: parent.left
                         anchors.right: parent.right
                         anchors.bottom: parent.bottom
@@ -156,7 +190,7 @@ Rectangle {
                         
                         text: modelData ? modelData.name : ""
                         font.pixelSize: 12
-                        color: themeManager.textPrimaryColor
+                        color: "white"
                         elide: Text.ElideRight
                         horizontalAlignment: Text.AlignHCenter
                     }

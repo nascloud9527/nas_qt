@@ -5,12 +5,21 @@ import QtQuick.Layouts 1.15
 Rectangle {
     id: audioPage
     color: themeManager.backgroundColor
+    // 使用背景图片组件
+    BackgroundImage {
+        anchors.fill: parent
+    }
+    
+    // 返回信号
+    signal goBack()
     
     // 添加调试信息
     Component.onCompleted: {
         console.log("AudioPage 加载完成")
         if (typefilesVM) {
             console.log("typefilesVM 在 AudioPage 中可用")
+            // 自动获取音频文件数据
+            typefilesVM.fetchTypeFiles("audio", 1, 30)
         } else {
             console.log("typefilesVM 在 AudioPage 中不可用")
         }
@@ -29,6 +38,15 @@ Rectangle {
             RowLayout {
                 anchors.fill: parent
                 anchors.margins: 16
+                
+                // 返回按钮
+                Button {
+                    text: "返回"
+                    onClicked: {
+                        // 发送返回信号
+                        audioPage.goBack()
+                    }
+                }
                 
                 Text {
                     text: "音频文件"
