@@ -18,7 +18,7 @@ Item  {
     TimeWeatherCard { }
 
     // 右上角按钮
-    // TopRightButtons { }
+    TopRightButtons { }
     
     // 页面加载器
     Loader {

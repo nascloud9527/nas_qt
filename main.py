@@ -12,10 +12,16 @@ from viewmodels.thumbnail_vm import ThumbnailVM
 from viewmodels.copy_vm import CopyViewModel
 from viewmodels.delete_vm import DeleteViewModel
 from viewmodels.dlna2_vm import Dlna2ViewModel
+from viewmodels.weather_data_vm import WeatherDataVM
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+
+    GAODE_API_KEY = "334982424d1f5f49c270d6ef90e88a9b"
+    weather_data_vm = WeatherDataVM(GAODE_API_KEY)
+    weather_vm = weather_data_vm.create_weather_vm()
+    
     engine = QQmlApplicationEngine()
 
     # 添加 ui 目录到导入路径
@@ -52,6 +58,7 @@ if __name__ == "__main__":
     engine.rootContext().setContextProperty("copyVM", copy_vm)
     engine.rootContext().setContextProperty("deleteVM", delete_vm)
     engine.rootContext().setContextProperty("dlna2VM", dlna2_vm)
+    engine.rootContext().setContextProperty("weatherVM", weather_vm)
 
     # 加载主窗口
     engine.load("ui/MainWindow.qml")
