@@ -17,24 +17,48 @@ Menu {
     MenuItem {
         text: "复制"
         onTriggered: {
-            // TODO: 实现复制功能
-            console.log("复制文件:", fileContextMenu.contextIndex)
+            if (fileContextMenu.contextIndex >= 0) {
+                // 获取当前文件信息
+                var currentFile = fileVM.file_list[fileContextMenu.contextIndex]
+                if (currentFile && currentFile.relPath) {
+                    // 设置选中的文件
+                    copyVM.set_selected_files([currentFile])
+                    // 执行复制操作（会自动选择目标目录）
+                    copyVM.copy_selected_files()
+                }
+            }
         }
     }
 
     MenuItem {
         text: "移动"
         onTriggered: {
-            // TODO: 实现移动功能
-            console.log("移动文件:", fileContextMenu.contextIndex)
+            if (fileContextMenu.contextIndex >= 0) {
+                // 获取当前文件信息
+                var currentFile = fileVM.file_list[fileContextMenu.contextIndex]
+                if (currentFile && currentFile.relPath) {
+                    // 设置选中的文件
+                    copyVM.set_selected_files([currentFile])
+                    // 执行移动操作（会自动选择目标目录）
+                    copyVM.move_selected_files()
+                }
+            }
         }
     }
     
     MenuItem {
         text: "删除"
         onTriggered: {
-            // TODO: 实现删除功能
-            console.log("删除文件:", fileContextMenu.contextIndex)
+            if (fileContextMenu.contextIndex >= 0) {
+                // 获取当前文件信息
+                var currentFile = fileVM.file_list[fileContextMenu.contextIndex]
+                if (currentFile && currentFile.relPath) {
+                    // 设置选中的文件
+                    deleteVM.set_selected_files([currentFile])
+                    // 执行删除操作（会显示确认对话框）
+                    deleteVM.delete_selected_files()
+                }
+            }
         }
     }
 
@@ -46,21 +70,4 @@ Menu {
         }
     }
     
-    // MenuSeparator {}
-    
-    // MenuItem {
-    //     text: "重命名"
-    //     onTriggered: {
-    //         // TODO: 实现重命名功能
-    //         console.log("重命名文件:", fileContextMenu.contextIndex)
-    //     }
-    // }
-    
-    // MenuItem {
-    //     text: "属性"
-    //     onTriggered: {
-    //         // TODO: 实现属性查看功能
-    //         console.log("查看文件属性:", fileContextMenu.contextIndex)
-    //     }
-    // }
 } 

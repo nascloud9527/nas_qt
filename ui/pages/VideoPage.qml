@@ -76,7 +76,7 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 50
-            color: themeManager.surfaceColor
+            color: "transparent"
             
             RowLayout {
                 anchors.fill: parent
@@ -89,24 +89,30 @@ Rectangle {
                         // 发送返回信号
                         videoPage.goBack()
                     }
+                    background: Rectangle {
+                        radius: 4
+                        color: "#417cd4"  
+                    }
+                    contentItem: Text {
+                        text: "返回"
+                        color: "white"
+                        font.pixelSize: 16
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
                 }
-                
+
+                Item { Layout.fillWidth: true }
+
                 Text {
-                    text: "视频文件"
+                    text: "视频列表"
                     font.pixelSize: 18
                     font.weight: Font.Medium
-                    color: themeManager.textPrimaryColor
+                    // color: themeManager.textPrimaryColor
+                    color: "#FFFFFF"  
                 }
                 
                 Item { Layout.fillWidth: true }
-                
-                // 刷新按钮
-                Button {
-                    text: "刷新"
-                    onClicked: {
-                        typefilesVM.fetchTypeFiles("video", 1, 30)
-                    }
-                }
             }
         }
 

@@ -27,6 +27,7 @@ class CopyViewModel(QObject):
         self._selected_files = []  # 选中的文件列表
         self._operation_queue = []  # 操作队列
         self._current_operation_index = -1
+        self._pending_operation = ""  # 待执行的操作类型
     
     @Slot(str)
     def set_token(self, token: str):
@@ -143,6 +144,57 @@ class CopyViewModel(QObject):
         
         if directory:
             self.set_target_directory(directory)
+            # 如果有选中的文件且有待执行的操作，自动执行相应操作
+            if self._selected_files and self._pending_operation:
+                if self._pending_operation == "copy":
+                    self.copy_files(directory)
+                elif self._pending_operation == "move":
+                    self.move_files(directory)
+                self._pending_operation = ""  # 清除待执行的操作
+    
+    @Slot(str)
+    def copy_selected_files(self):
+        """复制选中的文件（需要先选择目标目录）"""
+        if not self._selected_files:
+            self.copyFinished.emit(False, "没有选中任何文件")
+            return
+        
+        # 设置待执行的操作类型
+        self._pending_operation = "copy"
+        # 先选择目标目录，然后执行复制
+        self.select_target_directory()
+    
+    @Slot(str)
+    def move_selected_files(self):
+        """移动选中的文件（需要先选择目标目录）"""
+        if not self._selected_files:
+            self.copyFinished.emit(False, "没有选中任何文件")
+            return
+        
+        # 设置待执行的操作类型
+        self._pending_operation = "move"
+        # 先选择目标目录，然后执行移动
+        self.select_target_directory()
+    
+    @Slot(str, str)
+    def copy_files_with_target(self, target_directory: str):
+        """复制文件到指定目录"""
+        if not self._selected_files:
+            self.copyFinished.emit(False, "没有选中任何文件")
+            return
+        
+        self.set_target_directory(target_directory)
+        self.copy_files(target_directory)
+    
+    @Slot(str, str)
+    def move_files_with_target(self, target_directory: str):
+        """移动文件到指定目录"""
+        if not self._selected_files:
+            self.copyFinished.emit(False, "没有选中任何文件")
+            return
+        
+        self.set_target_directory(target_directory)
+        self.move_files(target_directory)
     
     @Slot()
     def cancel_operation(self):

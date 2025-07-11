@@ -111,15 +111,7 @@ Rectangle {
                     color: "#FFFFFF"   
                 }
                 
-                Item { Layout.fillWidth: true }
-                
-                // 刷新按钮
-                // Button {
-                //     text: "刷新"
-                //     onClicked: {
-                //         typefilesVM.fetchTypeFiles("photo", 1, 30)
-                //     }
-                // }
+                Item { Layout.fillWidth: true }               
             }
         }
 
