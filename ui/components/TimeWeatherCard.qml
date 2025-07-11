@@ -161,7 +161,14 @@ Rectangle {
                     font.pixelSize: 16
                 }
                 Text {
-                    text: weatherVM.weather + " " + weatherVM.tempRange
+                    text: {
+                        // 检查天气数据是否已加载
+                        if (weatherVM && weatherVM.isLoaded) {
+                            return weatherVM.weather + " " + weatherVM.tempRange
+                        } else {
+                            return "正在获取天气..."
+                        }
+                    }
                     color: "white"
                     font.pixelSize: 16
                 }
@@ -176,7 +183,14 @@ Rectangle {
                 height: 16
             }
             Text {
-                text: weatherVM.city
+                text: {
+                    // 检查天气数据是否已加载
+                    if (weatherVM && weatherVM.isLoaded) {
+                        return weatherVM.city
+                    } else {
+                        return "定位中..."
+                    }
+                }
                 color: "white"
                 font.pixelSize: 16
             }

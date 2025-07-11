@@ -12,15 +12,14 @@ from viewmodels.thumbnail_vm import ThumbnailVM
 from viewmodels.copy_vm import CopyViewModel
 from viewmodels.delete_vm import DeleteViewModel
 from viewmodels.dlna2_vm import Dlna2ViewModel
-from viewmodels.weather_data_vm import WeatherDataVM
+from viewmodels.weather_vm import WeatherViewModel
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
+    # 高德地图API密钥
     GAODE_API_KEY = "334982424d1f5f49c270d6ef90e88a9b"
-    weather_data_vm = WeatherDataVM(GAODE_API_KEY)
-    weather_vm = weather_data_vm.create_weather_vm()
     
     engine = QQmlApplicationEngine()
 
@@ -47,6 +46,7 @@ if __name__ == "__main__":
     copy_vm = CopyViewModel()
     delete_vm = DeleteViewModel()
     dlna2_vm = Dlna2ViewModel()
+    weather_vm = WeatherViewModel()  # 创建空的天气ViewModel
 
     engine.rootContext().setContextProperty("loginVM", login_vm)
     engine.rootContext().setContextProperty("themeManager", theme_manager)
@@ -64,4 +64,8 @@ if __name__ == "__main__":
     engine.load("ui/MainWindow.qml")
     if not engine.rootObjects():
         sys.exit(-1)
+    
+    # 将API密钥传递给QML上下文，以便在登录成功后使用
+    engine.rootContext().setContextProperty("GAODE_API_KEY", GAODE_API_KEY)
+    
     sys.exit(app.exec()) 

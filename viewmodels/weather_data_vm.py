@@ -4,13 +4,12 @@
 from datetime import datetime
 from tq_qpi.core import GaodeWeather
 from tq_qpi.ip_utils import get_public_ip
-from viewmodels.weather_vm import WeatherViewModel
 
 class WeatherDataVM:
     def __init__(self, gaode_api_key):
         self.weather_service = GaodeWeather(gaode_api_key)
 
-    def create_weather_vm(self):
+    def create_weather_data(self):
         print("=== 获取当前位置 ===")
         public_ip = get_public_ip()
         print(f"本机公网IP: {public_ip or '获取失败'}")
@@ -18,14 +17,14 @@ class WeatherDataVM:
         location = self.weather_service.get_location_by_ip(public_ip)
         if "error" in location:
             print(f"定位失败: {location['error']}")
-            # 返回一个空VM，避免程序崩溃
-            return WeatherViewModel({
+            # 返回一个空数据，避免程序崩溃
+            return {
                 "weather": "未知",
                 "city": "",
                 "date": "",
                 "time": "",
                 "tempRange": ""
-            })
+            }
 
         if "rectangle" in location:
             center_lnglat = location["rectangle"].split(";")[0]
@@ -69,4 +68,4 @@ class WeatherDataVM:
             "tempRange": temp_range
         }
 
-        return WeatherViewModel(weather_data)
+        return weather_data

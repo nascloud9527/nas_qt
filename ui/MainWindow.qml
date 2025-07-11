@@ -55,6 +55,18 @@ ApplicationWindow {
                         // 为DLNA2ViewModel设置token
                         dlna2VM.set_token(loginVM.get_token())
                         
+                        // 初始化天气服务并获取天气数据
+                        if (weatherVM && GAODE_API_KEY) {
+                            console.log("初始化天气服务...")
+                            weatherVM.initialize_weather_service(GAODE_API_KEY)
+                            
+                            // 延迟一点时间再获取天气数据，确保服务初始化完成
+                            Qt.callLater(function() {
+                                console.log("开始获取天气数据...")
+                                weatherVM.load_weather_data()
+                            })
+                        }
+                        
                         // 加载文件列表（使用用户名作为目录）
                         fileVM.load_file_list("")
                         
@@ -92,6 +104,11 @@ ApplicationWindow {
                 usbNotification.show(deviceName, eventType)
             })
             
+        }
+        
+        // 检查天气服务是否可用
+        if (weatherVM) {
+            console.log("weatherVM 已注册")
         }
     }
 }

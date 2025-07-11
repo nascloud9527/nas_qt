@@ -40,9 +40,9 @@ class DownloadViewModel(QObject):
     @Slot(str)
     def set_token(self, token: str):
         """设置认证 token"""
-        print(f"DownloadViewModel.set_token: 设置token={token[:10] if token else 'None'}...")
+        # print(f"DownloadViewModel.set_token: 设置token={token[:10] if token else 'None'}...")
         self._download_api.set_token(token)
-        print(f"DownloadViewModel.set_token: token设置完成")
+        # print(f"DownloadViewModel.set_token: token设置完成")
     
     @Slot(str, str)
     @Slot(str)

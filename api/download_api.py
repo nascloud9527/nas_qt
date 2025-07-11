@@ -16,10 +16,10 @@ class DownloadAPI:
 
     def set_token(self, token: str):
         """设置认证 token"""
-        print(f"DownloadAPI.set_token: 设置token={token[:10] if token else 'None'}...")
+        # print(f"DownloadAPI.set_token: 设置token={token[:10] if token else 'None'}...")
         self.token = token
         self.headers["Authorization"] = f"Bearer {token}"
-        print(f"DownloadAPI.set_token: 认证头已设置为={self.headers.get('Authorization', 'None')}")
+        # print(f"DownloadAPI.set_token: 认证头已设置为={self.headers.get('Authorization', 'None')}")
 
     def download_file(self, relpath: str, save_path: str = None) -> dict:
         """

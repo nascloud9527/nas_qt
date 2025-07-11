@@ -26,11 +26,11 @@ class LoginViewModel(QObject):
         if status == 200:
             # 保存 token
             self._token = data.get("token", "")
-            print(f"[Login Success] User: {self._username}, Token: {self._token}")
+            # print(f"[Login Success] User: {self._username}, Token: {self._token}")
             self.loginResult.emit("登录成功")
         else:
             error_msg = data.get("error", "登录失败")
-            print(f"[Login Error] User: {self._username}, Error: {error_msg}")
+            # print(f"[Login Error] User: {self._username}, Error: {error_msg}")
             self.loginResult.emit(error_msg)
 
     @Slot()
