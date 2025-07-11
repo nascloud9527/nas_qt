@@ -71,7 +71,6 @@ ApplicationWindow {
                         fileVM.load_file_list("")
                         
                         // 切换到主页面
-                        // mainPageLoader.source = "MainPage.qml"
                         mainPageLoader.source = "MainPage_tv.qml"
                     })
                 }

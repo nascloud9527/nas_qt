@@ -62,12 +62,12 @@ Menu {
         }
     }
 
-    MenuItem {
-        text: "投屏"
-        onTriggered: {
-            // TODO: 实现投屏功能
-            console.log("投屏文件:", fileContextMenu.contextIndex)
-        }
-    }
+    // MenuItem {
+    //     text: "投屏"
+    //     onTriggered: {
+    //         // TODO: 实现投屏功能
+    //         console.log("投屏文件:", fileContextMenu.contextIndex)
+    //     }
+    // }
     
 } 
