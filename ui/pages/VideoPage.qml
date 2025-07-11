@@ -11,6 +11,67 @@ Rectangle {
         anchors.fill: parent
     }
     
+    // 右键菜单组件
+    Menu {
+        id: videoContextMenu
+        property int contextIndex: -1
+        
+        MenuItem {
+            text: "打开"
+            onTriggered: {
+                if (videoContextMenu.contextIndex >= 0) {
+                    var currentFile = typefilesVM.files[videoContextMenu.contextIndex]
+                    if (currentFile && currentFile.relPath) {
+                        var relPath = currentFile.relPath
+                        if (relPath.startsWith("storage/")) {
+                            relPath = relPath.slice(8)
+                        }
+                        fileVM.open_file_with_system(relPath)
+                    }
+                }
+            }
+        }
+        
+        MenuItem {
+            text: "复制"
+            onTriggered: {
+                if (videoContextMenu.contextIndex >= 0) {
+                    var currentFile = typefilesVM.files[videoContextMenu.contextIndex]
+                    if (currentFile && currentFile.relPath) {
+                        copyVM.set_selected_files([currentFile])
+                        copyVM.copy_selected_files()
+                    }
+                }
+            }
+        }
+
+        MenuItem {
+            text: "移动"
+            onTriggered: {
+                if (videoContextMenu.contextIndex >= 0) {
+                    var currentFile = typefilesVM.files[videoContextMenu.contextIndex]
+                    if (currentFile && currentFile.relPath) {
+                        copyVM.set_selected_files([currentFile])
+                        copyVM.move_selected_files()
+                    }
+                }
+            }
+        }
+        
+        MenuItem {
+            text: "删除"
+            onTriggered: {
+                if (videoContextMenu.contextIndex >= 0) {
+                    var currentFile = typefilesVM.files[videoContextMenu.contextIndex]
+                    if (currentFile && currentFile.relPath) {
+                        deleteVM.set_selected_files([currentFile])
+                        deleteVM.delete_selected_files()
+                    }
+                }
+            }
+        }
+    }
+    
     // 返回信号
     signal goBack()
     
@@ -193,22 +254,32 @@ Rectangle {
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
                         
-                        onClicked: {
-                            console.log("点击视频文件:", modelData.name)
-                            // 这里可以添加播放视频的逻辑
+                        onClicked: function(mouse) {
+                            if (mouse.button === Qt.LeftButton) {
+                                console.log("点击视频文件:", modelData.name)
+                                // 这里可以添加播放视频的逻辑
+                            } else if (mouse.button === Qt.RightButton) {
+                                // 右键菜单
+                                videoContextMenu.contextIndex = index
+                                videoContextMenu.popup()
+                                console.log("右键菜单触发，视频索引:", index)
+                            }
                         }
                         
-                        onDoubleClicked: {
-                            console.log("双击播放视频:", modelData.relPath)
-                            // 双击播放视频
-                            if (modelData && modelData.relPath) {
-                                // 调用系统播放器播放视频
-                                var relPath = modelData.relPath
-                                if (relPath.startsWith("storage/")) {
-                                    relPath = relPath.slice(8)
+                        onDoubleClicked: function(mouse) {
+                            if (mouse.button === Qt.LeftButton) {
+                                console.log("双击播放视频:", modelData.relPath)
+                                // 双击播放视频
+                                if (modelData && modelData.relPath) {
+                                    // 调用系统播放器播放视频
+                                    var relPath = modelData.relPath
+                                    if (relPath.startsWith("storage/")) {
+                                        relPath = relPath.slice(8)
+                                    }
+                                    fileVM.open_file_with_system(relPath)
                                 }
-                                fileVM.open_file_with_system(relPath)
                             }
                         }
                     }
