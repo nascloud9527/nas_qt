@@ -78,6 +78,17 @@ Item  {
             console.log("复制进度:", progress)
             // 可以在这里更新进度条
         }
+        
+        function onDirectoryTreeChanged(directoryTree) {
+            console.log("目录树数据更新:", directoryTree)
+            // 显示目录选择对话框
+            showDirectorySelectDialog(directoryTree)
+        }
+        
+        function onDirectoryTreeRequested() {
+            console.log("请求目录树数据")
+            // 可以在这里显示加载状态
+        }
     }
 
     // 处理删除操作信号
@@ -113,8 +124,10 @@ Item  {
     }
 
     property var deleteConfirmDialogInstance: null
+    property var directorySelectDialogInstance: null
+    property string currentOperation: "" // "copy" 或 "move"
 
-        // 显示删除确认对话框
+    // 显示删除确认对话框
     function showDeleteConfirmDialog(filesToDelete) {
         console.log("showDeleteConfirmDialog 被调用")
         
@@ -149,6 +162,53 @@ Item  {
             dialog.open()
         } else {
             console.log("删除确认对话框组件创建失败:", dialogComponent.errorString())
+        }
+    }
+    
+    // 显示目录选择对话框
+    function showDirectorySelectDialog(directoryTree) {
+        console.log("showDirectorySelectDialog 被调用")
+        
+        // 获取当前操作类型
+        currentOperation = copyVM.get_current_operation_type()
+        console.log("当前操作类型:", currentOperation)
+        
+        // 创建目录选择对话框
+        var dialogComponent = Qt.createComponent("components/DirectorySelectDialog.qml")
+        if (dialogComponent.status === Component.Ready) {
+            console.log("目录选择对话框组件创建成功")
+            var dialog = dialogComponent.createObject(mainPage, {
+                "directoryTree": directoryTree,
+                "dialogTitle": "选择目标目录"
+            })
+            
+            // 保存对话框实例引用
+            directorySelectDialogInstance = dialog
+            
+            dialog.directorySelected.connect(function(selectedDirectory) {
+                console.log("用户选择目录:", selectedDirectory)
+                // 根据当前操作类型执行相应的操作
+                if (currentOperation === "copy") {
+                    copyVM.copy_files_with_directory(selectedDirectory)
+                } else if (currentOperation === "move") {
+                    copyVM.move_files_with_directory(selectedDirectory)
+                }
+                dialog.destroy()
+                directorySelectDialogInstance = null
+                currentOperation = ""
+            })
+            
+            dialog.dialogCancelled.connect(function() {
+                console.log("用户取消选择目录")
+                dialog.destroy()
+                directorySelectDialogInstance = null
+                currentOperation = ""
+            })
+            
+            console.log("尝试打开目录选择对话框")
+            dialog.open()
+        } else {
+            console.log("目录选择对话框组件创建失败:", dialogComponent.errorString())
         }
     }
     

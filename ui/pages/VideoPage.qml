@@ -38,7 +38,17 @@ Rectangle {
                 if (videoContextMenu.contextIndex >= 0) {
                     var currentFile = typefilesVM.files[videoContextMenu.contextIndex]
                     if (currentFile && currentFile.relPath) {
-                        copyVM.set_selected_files([currentFile])
+                        var relPath = currentFile.relPath
+                        if (relPath.startsWith("storage/")) {
+                            relPath = relPath.slice(8)
+                        }
+                        // 创建新的文件对象，使用处理后的路径
+                        var processedFile = {
+                            "relPath": relPath,
+                            "name": currentFile.name,
+                            "isDir": currentFile.isDir
+                        }
+                        copyVM.set_selected_files([processedFile])
                         copyVM.copy_selected_files()
                     }
                 }
@@ -51,7 +61,17 @@ Rectangle {
                 if (videoContextMenu.contextIndex >= 0) {
                     var currentFile = typefilesVM.files[videoContextMenu.contextIndex]
                     if (currentFile && currentFile.relPath) {
-                        copyVM.set_selected_files([currentFile])
+                        var relPath = currentFile.relPath
+                        if (relPath.startsWith("storage/")) {
+                            relPath = relPath.slice(8)
+                        }
+                        // 创建新的文件对象，使用处理后的路径
+                        var processedFile = {
+                            "relPath": relPath,
+                            "name": currentFile.name,
+                            "isDir": currentFile.isDir
+                        }
+                        copyVM.set_selected_files([processedFile])
                         copyVM.move_selected_files()
                     }
                 }

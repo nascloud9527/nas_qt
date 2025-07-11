@@ -2,6 +2,7 @@ from PySide6.QtCore import QObject, Signal, Slot, Property
 from api.copy_api import CopyAPI
 import sys
 import os
+import json
 
 # 添加项目根目录到路径
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -16,6 +17,8 @@ class CopyViewModel(QObject):
     copyStarted = Signal(str)  # 复制开始信号 (operation_type)
     copyCancelled = Signal()  # 复制取消信号
     targetDirectoryChanged = Signal(str)  # 目标目录改变信号
+    directoryTreeChanged = Signal(str)  # 目录树改变信号（使用JSON字符串）
+    directoryTreeRequested = Signal()  # 目录树请求信号
     
     def __init__(self):
         super().__init__()
@@ -28,6 +31,8 @@ class CopyViewModel(QObject):
         self._operation_queue = []  # 操作队列
         self._current_operation_index = -1
         self._pending_operation = ""  # 待执行的操作类型
+        self._directory_tree = []  # 目录树数据
+        self._current_operation_type = ""  # 当前操作类型，用于目录选择
     
     @Slot(str)
     def set_token(self, token: str):
@@ -152,47 +157,51 @@ class CopyViewModel(QObject):
                     self.move_files(directory)
                 self._pending_operation = ""  # 清除待执行的操作
     
-    @Slot(str)
+    @Slot()
     def copy_selected_files(self):
         """复制选中的文件（需要先选择目标目录）"""
         if not self._selected_files:
             self.copyFinished.emit(False, "没有选中任何文件")
             return
         
-        # 设置待执行的操作类型
-        self._pending_operation = "copy"
-        # 先选择目标目录，然后执行复制
-        self.select_target_directory()
+        # 设置当前操作类型
+        self._current_operation_type = "copy"
+        # 先获取目录树数据
+        self.get_directory_tree()
     
-    @Slot(str)
+    @Slot()
     def move_selected_files(self):
         """移动选中的文件（需要先选择目标目录）"""
         if not self._selected_files:
             self.copyFinished.emit(False, "没有选中任何文件")
             return
         
-        # 设置待执行的操作类型
-        self._pending_operation = "move"
-        # 先选择目标目录，然后执行移动
-        self.select_target_directory()
+        # 设置当前操作类型
+        self._current_operation_type = "move"
+        # 先获取目录树数据
+        self.get_directory_tree()
     
-    @Slot(str, str)
-    def copy_files_with_target(self, target_directory: str):
-        """复制文件到指定目录"""
+    @Slot(str)
+    def copy_files_with_directory(self, target_directory: str):
+        """使用指定目录执行复制操作"""
         if not self._selected_files:
             self.copyFinished.emit(False, "没有选中任何文件")
             return
         
+        # 设置待执行的操作类型
+        self._pending_operation = "copy"
         self.set_target_directory(target_directory)
         self.copy_files(target_directory)
     
-    @Slot(str, str)
-    def move_files_with_target(self, target_directory: str):
-        """移动文件到指定目录"""
+    @Slot(str)
+    def move_files_with_directory(self, target_directory: str):
+        """使用指定目录执行移动操作"""
         if not self._selected_files:
             self.copyFinished.emit(False, "没有选中任何文件")
             return
         
+        # 设置待执行的操作类型
+        self._pending_operation = "move"
         self.set_target_directory(target_directory)
         self.move_files(target_directory)
     
@@ -272,3 +281,124 @@ class CopyViewModel(QObject):
     def selected_files_count(self):
         """选中文件的数量"""
         return len(self._selected_files)
+    
+    @Property(list, notify=directoryTreeChanged)
+    def directory_tree(self):
+        """目录树数据"""
+        return self._directory_tree.copy()
+    
+    @Slot()
+    def get_directory_tree(self):
+        """获取目录树"""
+        self.directoryTreeRequested.emit()
+        
+        # 调用API获取目录树
+        result = self._copy_api.get_directory_tree()
+        
+        if result["success"]:
+            # 解析目录树数据
+            tree_data = result["data"].get("dirs", []) if result["data"] else []
+            print(f"API返回的目录树数据: {tree_data}")
+            print(f"数据类型: {type(tree_data)}")
+            if tree_data:
+                print(f"第一个元素: {tree_data[0] if len(tree_data) > 0 else 'None'}")
+                print(f"第一个元素类型: {type(tree_data[0]) if len(tree_data) > 0 else 'None'}")
+            
+            self._directory_tree = self._parse_directory_tree(tree_data)
+            print(f"解析后的目录树: {self._directory_tree}")
+            
+            # 转换为QML可理解的格式
+            qml_tree_data = self._convert_to_qml_format(self._directory_tree)
+            print(f"QML格式的目录树: {qml_tree_data}")
+            
+            # 转换为JSON字符串
+            try:
+                json_data = json.dumps(qml_tree_data, ensure_ascii=False)
+                print(f"JSON字符串: {json_data}")
+                self.directoryTreeChanged.emit(json_data)
+            except Exception as e:
+                print(f"JSON序列化失败: {e}")
+                self.copyFinished.emit(False, f"目录树数据序列化失败: {str(e)}")
+        else:
+            error_msg = result.get("error", "获取目录树失败")
+            self.copyFinished.emit(False, f"获取目录树失败: {error_msg}")
+    
+    def _parse_directory_tree(self, tree_data):
+        """解析目录树数据"""
+        parsed_tree = []
+        
+        def parse_node(node_data):
+            if not node_data:
+                return None
+            
+            # 确保node_data是字典类型
+            if not isinstance(node_data, dict):
+                return None
+            
+            node = {}
+            node["value"] = str(node_data.get("value", ""))
+            node["title"] = str(node_data.get("title", ""))
+            node["children"] = []
+            
+            # 递归解析子节点
+            children = node_data.get("children", [])
+            if isinstance(children, list):
+                for child in children:
+                    child_node = parse_node(child)
+                    if child_node:
+                        node["children"].append(child_node)
+            
+            return node
+        
+        # 解析所有根节点
+        if isinstance(tree_data, list):
+            for node_data in tree_data:
+                node = parse_node(node_data)
+                if node:
+                    parsed_tree.append(node)
+        
+        return parsed_tree
+    
+    def _convert_to_qml_format(self, tree_data):
+        """将Python目录树数据转换为QML可理解的格式"""
+        def convert_node(node):
+            if not node:
+                return None
+            
+            # 创建简单的JavaScript对象格式
+            qml_node = {
+                "value": str(node.get("value", "")),
+                "title": str(node.get("title", "")),
+                "children": []
+            }
+            
+            # 递归转换子节点
+            children = node.get("children", [])
+            if isinstance(children, list):
+                for child in children:
+                    child_node = convert_node(child)
+                    if child_node:
+                        qml_node["children"].append(child_node)
+            
+            return qml_node
+        
+        # 转换所有根节点
+        qml_tree = []
+        if isinstance(tree_data, list):
+            for node in tree_data:
+                qml_node = convert_node(node)
+                if qml_node:
+                    qml_tree.append(qml_node)
+        
+        return qml_tree
+    
+    @Slot(result=list)
+    def get_directory_tree_data(self):
+        """获取目录树数据"""
+        return self._directory_tree.copy()
+    
+    @Slot(result=str)
+    def get_current_operation_type(self):
+        """获取当前操作类型"""
+        return self._current_operation_type
+    

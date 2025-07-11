@@ -22,6 +22,49 @@ class CopyAPI:
         self.token = token
         self.headers["Authorization"] = f"Bearer {token}"
     
+    def get_directory_tree(self) -> Dict:
+        """
+        获取当前用户的目录树结构
+        
+        Returns:
+            Dict: 包含目录树结构的响应数据
+        """
+        try:
+            # 构建请求URL
+            api_url = f"{config.get_api_base_url()}/api/file/getdirtree"
+            
+            # 发送GET请求
+            response = requests.get(
+                api_url,
+                headers=self.headers,
+                timeout=30
+            )
+            
+            # 检查响应状态
+            if response.status_code == 200:
+                return {
+                    "success": True,
+                    "data": response.json(),
+                    "message": "获取目录树成功"
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": f"请求失败，状态码: {response.status_code}",
+                    "data": response.json() if response.content else None
+                }
+                
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "error": f"网络请求异常: {str(e)}"
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"获取目录树异常: {str(e)}"
+            }
+    
     def copy_files(self, files: List[str], to_dir: str, action: str = "copy") -> Dict:
         """
         复制或移动文件
@@ -36,7 +79,7 @@ class CopyAPI:
         """
         try:
             # 构建请求URL
-            api_url = f"{config.get_api_base_url()}/file/copy"
+            api_url = f"{config.get_api_base_url()}/api/file/copy"
             
             # 构建请求数据，与服务器端接口参数结构保持一致
             request_data = {
