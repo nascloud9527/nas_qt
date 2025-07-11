@@ -107,6 +107,10 @@ class CopyViewModel(QObject):
             self._is_copying = False
             return
         
+        print(f"_start_operation: 开始执行 {operation_type} 操作，文件数量: {len(file_paths)}")
+        print(f"_start_operation: 目标目录: {self._target_directory}")
+        print(f"_start_operation: 文件路径: {file_paths}")
+
         # 调用API执行操作
         result = self._copy_api.copy_files(
             files=file_paths,
@@ -184,25 +188,33 @@ class CopyViewModel(QObject):
     @Slot(str)
     def copy_files_with_directory(self, target_directory: str):
         """使用指定目录执行复制操作"""
+        print(f"copy_files_with_directory: 接收到的目标目录 = '{target_directory}'")
+        
         if not self._selected_files:
             self.copyFinished.emit(False, "没有选中任何文件")
             return
         
         # 设置待执行的操作类型
         self._pending_operation = "copy"
+        print(f"copy_files_with_directory: 设置目标目录前 _target_directory = '{self._target_directory}'")
         self.set_target_directory(target_directory)
+        print(f"copy_files_with_directory: 设置目标目录后 _target_directory = '{self._target_directory}'")
         self.copy_files(target_directory)
     
     @Slot(str)
     def move_files_with_directory(self, target_directory: str):
         """使用指定目录执行移动操作"""
+        print(f"move_files_with_directory: 接收到的目标目录 = '{target_directory}'")
+        
         if not self._selected_files:
             self.copyFinished.emit(False, "没有选中任何文件")
             return
         
         # 设置待执行的操作类型
         self._pending_operation = "move"
+        print(f"move_files_with_directory: 设置目标目录前 _target_directory = '{self._target_directory}'")
         self.set_target_directory(target_directory)
+        print(f"move_files_with_directory: 设置目标目录后 _target_directory = '{self._target_directory}'")
         self.move_files(target_directory)
     
     @Slot()

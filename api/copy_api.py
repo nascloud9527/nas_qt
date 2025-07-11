@@ -88,6 +88,9 @@ class CopyAPI:
                 "files": files
             }
             
+            print(f"copy_api.copy_files: 发送请求到 {api_url}")
+            print(f"copy_api.copy_files: 请求数据 = {request_data}")
+            
             # 发送POST请求
             response = requests.post(
                 api_url,
@@ -95,6 +98,9 @@ class CopyAPI:
                 headers=self.headers,
                 timeout=30
             )
+            
+            print(f"copy_api.copy_files: 响应状态码 = {response.status_code}")
+            print(f"copy_api.copy_files: 响应内容 = {response.text}")
             
             # 检查响应状态
             if response.status_code == 200:
