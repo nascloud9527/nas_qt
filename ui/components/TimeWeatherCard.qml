@@ -165,8 +165,10 @@ Rectangle {
                         // 检查天气数据是否已加载
                         if (weatherVM && weatherVM.isLoaded) {
                             return weatherVM.weather + " " + weatherVM.tempRange
-                        } else {
+                        } else if (weatherVM && weatherVM.isLoading) {
                             return "正在获取天气..."
+                        } else {
+                            return "天气信息"
                         }
                     }
                     color: "white"
@@ -187,8 +189,10 @@ Rectangle {
                     // 检查天气数据是否已加载
                     if (weatherVM && weatherVM.isLoaded) {
                         return weatherVM.city
-                    } else {
+                    } else if (weatherVM && weatherVM.isLoading) {
                         return "定位中..."
+                    } else {
+                        return "未知位置"
                     }
                 }
                 color: "white"

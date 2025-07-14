@@ -33,11 +33,24 @@ class CopyViewModel(QObject):
         self._pending_operation = ""  # 待执行的操作类型
         self._directory_tree = []  # 目录树数据
         self._current_operation_type = ""  # 当前操作类型，用于目录选择
+        self._current_username = ""  # 当前登录的用户名
     
     @Slot(str)
     def set_token(self, token: str):
         """设置认证 token"""
         self._copy_api.set_token(token)
+    
+    @Slot(str)
+    def set_username(self, username: str):
+        """设置当前登录的用户名"""
+        self._current_username = username
+        print(f"CopyViewModel.set_username: 设置用户名 = {username}")
+    
+    def _is_admin_user(self) -> bool:
+        """判断当前用户是否为admin账户"""
+        is_admin = self._current_username == "admin"
+        print(f"CopyViewModel._is_admin_user: 当前用户 = {self._current_username}, 是否为admin = {is_admin}")
+        return is_admin
     
     @Slot(list)
     def set_selected_files(self, files: list):
@@ -112,10 +125,12 @@ class CopyViewModel(QObject):
         print(f"_start_operation: 文件路径: {file_paths}")
 
         # 调用API执行操作
+        is_admin = self._is_admin_user()
         result = self._copy_api.copy_files(
             files=file_paths,
             to_dir=self._target_directory,
-            action=operation_type
+            action=operation_type,
+            is_admin=is_admin
         )
         
         if result["success"]:

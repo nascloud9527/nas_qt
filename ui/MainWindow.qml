@@ -48,6 +48,7 @@ ApplicationWindow {
                         
                         // 为复制ViewModel设置token
                         copyVM.set_token(loginVM.get_token())
+                        copyVM.set_username(loginVM.get_username())
 
                         // 为删除ViewModel设置token
                         deleteVM.set_token(loginVM.get_token())

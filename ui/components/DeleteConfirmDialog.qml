@@ -8,9 +8,11 @@ Dialog {
     anchors.centerIn: parent
     width: 400
     height: 200
+
+    title: "确认删除"
     
     property var filesToDelete: []
-    property string title: "确认删除"
+    // property string title: "确认删除"
     property string message: "确定要删除选中的文件吗？"
     
     // 信号定义

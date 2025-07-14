@@ -65,7 +65,7 @@ class CopyAPI:
                 "error": f"获取目录树异常: {str(e)}"
             }
     
-    def copy_files(self, files: List[str], to_dir: str, action: str = "copy") -> Dict:
+    def copy_files(self, files: List[str], to_dir: str, action: str = "copy", is_admin: bool = True) -> Dict:
         """
         复制或移动文件
         
@@ -73,6 +73,7 @@ class CopyAPI:
             files: 要复制的文件路径列表
             to_dir: 目标目录路径
             action: 操作类型，"copy" 或 "move"，默认为 "copy"
+            is_admin: 是否为admin账户，默认为True。非admin账户会去掉文件路径最前面的一级目录
         
         Returns:
             Dict: 包含操作结果的 JSON 响应
@@ -81,11 +82,27 @@ class CopyAPI:
             # 构建请求URL
             api_url = f"{config.get_api_base_url()}/api/file/copy"
             
+            # 处理文件路径
+            processed_files = files
+            if not is_admin:
+                # 非admin账户去掉最前面的一级目录
+                processed_files = []
+                for file_path in files:
+                    # 分割路径并去掉第一级目录
+                    path_parts = file_path.split('/')
+                    if len(path_parts) > 1:
+                        # 去掉第一级目录，保留剩余部分
+                        processed_path = '/'.join(path_parts[1:])
+                        processed_files.append(processed_path)
+                    else:
+                        # 如果路径只有一级，保持不变
+                        processed_files.append(file_path)
+            
             # 构建请求数据，与服务器端接口参数结构保持一致
             request_data = {
                 "action": action,
                 "todir": to_dir,
-                "files": files
+                "files": processed_files
             }
             
             print(f"copy_api.copy_files: 发送请求到 {api_url}")
