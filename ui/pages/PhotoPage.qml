@@ -9,7 +9,7 @@ Rectangle {
     BackgroundImage {
         anchors.fill: parent
     }
-        // 右键菜单组件
+    // 右键菜单组件
     Menu {
         id: videoContextMenu
         property int contextIndex: -1
