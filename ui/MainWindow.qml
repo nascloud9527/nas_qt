@@ -52,6 +52,7 @@ ApplicationWindow {
 
                         // 为删除ViewModel设置token
                         deleteVM.set_token(loginVM.get_token())
+                        deleteVM.set_username(loginVM.get_username())
 
                         // 为DLNA2ViewModel设置token
                         dlna2VM.set_token(loginVM.get_token())

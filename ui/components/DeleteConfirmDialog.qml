@@ -42,7 +42,7 @@ Dialog {
             }
             
             Text {
-                text: title
+                text: deleteConfirmDialog.title
                 font.pixelSize: 16
                 font.weight: Font.Bold
                 color: themeManager.textPrimaryColor
@@ -132,6 +132,7 @@ Dialog {
                 }
                 
                 onClicked: {
+                    console.log("准备删除以下文件：", deleteConfirmDialog.filesToDelete)
                     deleteConfirmDialog.deleteConfirmed()
                     deleteConfirmDialog.close()
                 }

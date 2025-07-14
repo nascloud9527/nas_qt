@@ -27,6 +27,7 @@ class DeleteViewModel(QObject):
         self._files_to_delete = []  # 待删除的文件列表
         self._operation_queue = []  # 操作队列
         self._current_operation_index = -1
+        self._current_username = ""  # 当前登录的用户名
     
     @Slot(str)
     def set_token(self, token: str):
@@ -37,6 +38,18 @@ class DeleteViewModel(QObject):
     def set_selected_files(self, files: list):
         """设置选中的文件列表"""
         self._selected_files = files
+    
+    @Slot(str)
+    def set_username(self, username: str):
+        """设置当前登录的用户名"""
+        self._current_username = username
+        print(f"DeleteViewModel.set_username: 设置用户名 = {username}")
+    
+    def _is_admin_user(self) -> bool:
+        """判断当前用户是否为admin账户"""
+        is_admin = self._current_username == "admin"
+        print(f"DeleteViewModel._is_admin_user: 当前用户 = {self._current_username}, 是否为admin = {is_admin}")
+        return is_admin
     
     @Slot(list)
     def set_files_to_delete(self, files: list):
@@ -93,13 +106,15 @@ class DeleteViewModel(QObject):
     def _start_delete_operation(self):
         """开始删除操作"""
         self._is_deleting = True
+        is_admin = self._is_admin_user()
+        
         self._delete_progress = 0
         self._current_operation_info = f"正在删除 {len(self._files_to_delete)} 个文件"
         self.deleteProgressChanged.emit(0)
         self.deleteStarted.emit(self._current_operation_info)
         
         # 调用API执行删除操作
-        result = self._delete_api.delete_files(files=self._files_to_delete)
+        result = self._delete_api.delete_files(files=self._files_to_delete, is_admin=is_admin)
         
         if result["success"]:
             self._delete_progress = 100
