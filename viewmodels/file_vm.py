@@ -96,6 +96,52 @@ class FileViewModel(QObject):
         self.loadingChanged.emit()
         self.errorChanged.emit()
     
+    
+    @Slot(str)
+    def load_file_list_admin(self, directory: str = ""):
+        """加载文件列表"""
+        self._is_loading = True
+        self._error_message = ""
+        self.loadingChanged.emit()
+        self.errorChanged.emit()
+        
+        # # 如果没有指定目录，使用用户名作为默认目录
+        # if not directory and self._current_username:
+        #     directory = self._current_username
+        # if not directory and self._current_username == "admin":
+        #     directory = self._current_username
+        
+        # 调用 API 获取文件列表
+        result = self._file_api.get_file_list(directory)
+        
+        if result["success"]:
+            self._current_directory = directory
+            self._upload_vm.set_current_directory(directory)  # 同步设置上传目录
+            files_data = result["data"].get("files", []) if result["data"] else []
+            
+            # 转换文件数据格式
+            self._file_list = []
+            if files_data:
+                for file_data in files_data:
+                    if file_data:  # 确保file_data不为None
+                        transformed_file = self._file_api.transform_file_data(file_data)
+                        self._file_list.append(transformed_file)
+            
+            self._error_message = ""
+        else:
+            self._error_message = result.get("error", "获取文件列表失败")
+            self._file_list = []
+        
+        # 确保_file_list永远不会是None
+        if self._file_list is None:
+            self._file_list = []
+        
+        self._is_loading = False
+        self.fileListChanged.emit()
+        self.loadingChanged.emit()
+        self.errorChanged.emit()
+    
+
     @Slot()
     def refresh_file_list(self):
         """刷新当前目录的文件列表"""
@@ -158,7 +204,7 @@ class FileViewModel(QObject):
             # 如果不是 admin，就拼接用户名
             if self._current_username != "admin":
                 relative_path = os.path.join(self._current_username, relative_path)
-                
+
             full_path = config.get_full_file_path(relative_path)
             print(f"尝试打开文件: {full_path}")
 
@@ -189,8 +235,19 @@ class FileViewModel(QObject):
     def go_to_parent_directory(self):
         """返回上一级目录"""
         # 主页就是用户名
-        if self._current_directory == self._current_username or not self._current_directory:
-            return  # 已经在主页或根目录
+        # 如果不是 admin，且已经在主页或根目录，就不能再返回上一级
+        if self._current_username != "admin":
+            # 普通用户，如果在主页或空目录，就不能再返回
+            if self._current_directory == self._current_username or not self._current_directory:
+                return
+        else:
+            # admin 用户
+            if self._current_directory == "admin":
+                # admin 的“上一级”是空目录（根目录）
+                parent_directory = ""
+                self.load_file_list_admin(parent_directory)
+                self.directoryChanged.emit(parent_directory)
+                return
         parent_directory = self._file_api.get_parent_directory(self._current_directory)
         self.load_file_list(parent_directory)
         self.directoryChanged.emit(parent_directory)
@@ -318,7 +375,16 @@ class FileViewModel(QObject):
     
     @Property(bool, notify=fileListChanged)
     def is_at_home(self):
-        return self._current_directory == self._current_username or not self._current_directory
+        if self._current_username == "admin":
+            if self._current_directory == "":
+                return True
+            else:
+                return False
+        else:
+            return (
+                self._current_directory == self._current_username
+                or not self._current_directory
+            )
     
     @Property(bool, notify=fileListChanged)
     def all_files_selected(self):
