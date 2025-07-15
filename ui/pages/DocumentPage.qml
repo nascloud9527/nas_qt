@@ -107,7 +107,28 @@ Rectangle {
                 if (videoContextMenu.contextIndex >= 0) {
                     var currentFile = fileVM.file_list[videoContextMenu.contextIndex]
                     if (currentFile && currentFile.relPath) {
-                        deleteVM.set_selected_files([currentFile])
+
+                        console.log("currentFile.relPath:", currentFile.relPath)
+                        // 获取当前文件的相对路径
+                        var relPath = currentFile.relPath
+                        var username = loginVM.get_username()
+                        var storageRelPath = "storage/"
+                        var newRelPath
+                        // 拼接新的路径
+                        if (username !== "admin") {
+                            newRelPath = storageRelPath + username + "/" + relPath
+                        }else{
+                            newRelPath = storageRelPath + relPath
+                        }
+                        console.log("newRelPath:", newRelPath)
+                                                // 创建新的文件对象，使用处理后的路径
+                        var processedFile = {
+                            "relPath": newRelPath,
+                            "name": currentFile.name,
+                            "isDir": currentFile.isDir
+                        }
+        
+                        deleteVM.set_selected_files([processedFile])
                         deleteVM.delete_selected_files()
                     }
                 }
