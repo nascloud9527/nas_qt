@@ -80,13 +80,13 @@ Item  {
         }
         
         function onDirectoryTreeChanged(directoryTree) {
-            console.log("目录树数据更新:", directoryTree)
+            // console.log("目录树数据更新:", directoryTree)
             // 显示目录选择对话框
             showDirectorySelectDialog(directoryTree)
         }
         
         function onDirectoryTreeRequested() {
-            console.log("请求目录树数据")
+            // console.log("请求目录树数据")
             // 可以在这里显示加载状态
         }
     }

@@ -178,7 +178,7 @@ Dialog {
         if (typeof treeData === 'string') {
             try {
                 treeData = JSON.parse(treeData)
-                console.log("成功解析JSON数据")
+                // console.log("成功解析JSON数据")
             } catch (e) {
                 console.error("JSON解析失败:", e)
                 return
@@ -187,7 +187,7 @@ Dialog {
 
         if (Array.isArray(treeData)) {
             treeDataCache = treeData   // 🌟 缓存全局树数据
-            console.log(`根节点数量: ${treeData.length}`)
+            // console.log(`根节点数量: ${treeData.length}`)
             processDirectoryTree(treeData, 0, "")
         } else {
             console.error("目录树数据不是数组格式")

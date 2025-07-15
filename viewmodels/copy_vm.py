@@ -325,23 +325,23 @@ class CopyViewModel(QObject):
         if result["success"]:
             # 解析目录树数据
             tree_data = result["data"].get("dirs", []) if result["data"] else []
-            print(f"API返回的目录树数据: {tree_data}")
-            print(f"数据类型: {type(tree_data)}")
+            # print(f"API返回的目录树数据: {tree_data}")
+            # print(f"数据类型: {type(tree_data)}")
             if tree_data:
                 print(f"第一个元素: {tree_data[0] if len(tree_data) > 0 else 'None'}")
-                print(f"第一个元素类型: {type(tree_data[0]) if len(tree_data) > 0 else 'None'}")
+                # print(f"第一个元素类型: {type(tree_data[0]) if len(tree_data) > 0 else 'None'}")
             
             self._directory_tree = self._parse_directory_tree(tree_data)
-            print(f"解析后的目录树: {self._directory_tree}")
+            # print(f"解析后的目录树: {self._directory_tree}")
             
             # 转换为QML可理解的格式
             qml_tree_data = self._convert_to_qml_format(self._directory_tree)
-            print(f"QML格式的目录树: {qml_tree_data}")
+            # print(f"QML格式的目录树: {qml_tree_data}")
             
             # 转换为JSON字符串
             try:
                 json_data = json.dumps(qml_tree_data, ensure_ascii=False)
-                print(f"JSON字符串: {json_data}")
+                # print(f"JSON字符串: {json_data}")
                 self.directoryTreeChanged.emit(json_data)
             except Exception as e:
                 print(f"JSON序列化失败: {e}")

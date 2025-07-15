@@ -154,6 +154,11 @@ class FileViewModel(QObject):
     def open_file_with_system(self, relative_path: str):
         """使用系统默认程序打开文件；若为视频则调用系统 ffplay 播放"""
         try:
+            print("username :", self._current_username)
+            # 如果不是 admin，就拼接用户名
+            if self._current_username != "admin":
+                relative_path = os.path.join(self._current_username, relative_path)
+                
             full_path = config.get_full_file_path(relative_path)
             print(f"尝试打开文件: {full_path}")
 

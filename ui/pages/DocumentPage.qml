@@ -19,13 +19,19 @@ Rectangle {
             text: "打开"
             onTriggered: {
                 if (videoContextMenu.contextIndex >= 0) {
-                    var currentFile = typefilesVM.files[videoContextMenu.contextIndex]
+                    var currentFile = fileVM.file_list[videoContextMenu.contextIndex]
                     if (currentFile && currentFile.relPath) {
                         var relPath = currentFile.relPath
-                        if (relPath.startsWith("storage/")) {
-                            relPath = relPath.slice(8)
+                        var username = loginVM.get_username()
+                        var newRelPath
+                        // 拼接新的路径
+                        if (username !== "admin") {
+                            newRelPath = username + "/" + relPath
+                        }else{
+                            newRelPath = relPath
                         }
-                        fileVM.open_file_with_system(relPath)
+                        console.log("newRelPath:", newRelPath)
+                        fileVM.open_file_with_system(newRelPath)
                     }
                 }
             }
@@ -35,18 +41,28 @@ Rectangle {
             text: "复制"
             onTriggered: {
                 if (videoContextMenu.contextIndex >= 0) {
-                    var currentFile = typefilesVM.files[videoContextMenu.contextIndex]
+                    var currentFile = fileVM.file_list[videoContextMenu.contextIndex]
                     if (currentFile && currentFile.relPath) {
+
                         var relPath = currentFile.relPath
-                        if (relPath.startsWith("storage/")) {
-                            relPath = relPath.slice(8)
+                        var username = loginVM.get_username()
+                        var newRelPath
+                        // console.log("relPath:", relPath)
+                        // console.log("get_username:", loginVM.get_username())
+                        // 拼接新的路径
+                        if (username !== "admin") {
+                            newRelPath = username + "/" + relPath
+                        }else{
+                            newRelPath = relPath
                         }
+                        // console.log("新的 relPath:", newRelPath)
                         // 创建新的文件对象，使用处理后的路径
                         var processedFile = {
-                            "relPath": relPath,
+                            "relPath": newRelPath,
                             "name": currentFile.name,
                             "isDir": currentFile.isDir
                         }
+
                         copyVM.set_selected_files([processedFile])
                         copyVM.copy_selected_files()
                     }
@@ -58,15 +74,23 @@ Rectangle {
             text: "移动"
             onTriggered: {
                 if (videoContextMenu.contextIndex >= 0) {
-                    var currentFile = typefilesVM.files[videoContextMenu.contextIndex]
+                    var currentFile = fileVM.file_list[videoContextMenu.contextIndex]
                     if (currentFile && currentFile.relPath) {
+                        // 获取当前文件的相对路径
                         var relPath = currentFile.relPath
-                        if (relPath.startsWith("storage/")) {
-                            relPath = relPath.slice(8)
+                        var username = loginVM.get_username()
+                        var newRelPath
+ 
+                        // 拼接新的路径
+                        if (username !== "admin") {
+                            newRelPath = username + "/" + relPath
+                        }else{
+                            newRelPath = relPath
                         }
+
                         // 创建新的文件对象，使用处理后的路径
                         var processedFile = {
-                            "relPath": relPath,
+                            "relPath": newRelPath,
                             "name": currentFile.name,
                             "isDir": currentFile.isDir
                         }
@@ -81,7 +105,7 @@ Rectangle {
             text: "删除"
             onTriggered: {
                 if (videoContextMenu.contextIndex >= 0) {
-                    var currentFile = typefilesVM.files[videoContextMenu.contextIndex]
+                    var currentFile = fileVM.file_list[videoContextMenu.contextIndex]
                     if (currentFile && currentFile.relPath) {
                         deleteVM.set_selected_files([currentFile])
                         deleteVM.delete_selected_files()
@@ -227,30 +251,30 @@ Rectangle {
                 anchors.margins: 16
                 spacing: 16
                 // 全选复选框
-                CheckBox {
-                    id: selectAllCheckBox
-                    Layout.preferredWidth: 24
-                    Layout.preferredHeight: 24
-                    checked: fileVM.all_files_selected
-                    tristate: fileVM.some_files_selected && !fileVM.all_files_selected
+                // CheckBox {
+                //     id: selectAllCheckBox
+                //     Layout.preferredWidth: 24
+                //     Layout.preferredHeight: 24
+                //     checked: fileVM.all_files_selected
+                //     tristate: fileVM.some_files_selected && !fileVM.all_files_selected
                     
-                    onClicked: {
-                        // 明确处理点击事件，而不是依赖checkedChanged
-                        if (checkState === Qt.PartiallyChecked) {
-                            // 当处于三态时，强制设置为选中状态
-                            fileVM.select_all_files(true)
-                        } else {
-                            // 根据当前状态决定下一步操作
-                            if (fileVM.all_files_selected) {
-                                // 当前全选，点击后取消全选
-                                fileVM.select_all_files(false)
-                            } else {
-                                // 当前未全选，点击后全选
-                                fileVM.select_all_files(true)
-                            }
-                        }
-                    }
-                }
+                //     onClicked: {
+                //         // 明确处理点击事件，而不是依赖checkedChanged
+                //         if (checkState === Qt.PartiallyChecked) {
+                //             // 当处于三态时，强制设置为选中状态
+                //             fileVM.select_all_files(true)
+                //         } else {
+                //             // 根据当前状态决定下一步操作
+                //             if (fileVM.all_files_selected) {
+                //                 // 当前全选，点击后取消全选
+                //                 fileVM.select_all_files(false)
+                //             } else {
+                //                 // 当前未全选，点击后全选
+                //                 fileVM.select_all_files(true)
+                //             }
+                //         }
+                //     }
+                // }
                 // 文件图标占位符（对应文件列表项中的图标）
                 Item {
                     Layout.preferredWidth: 24
@@ -401,19 +425,19 @@ Rectangle {
                         anchors.margins: 16
                         spacing: 16
 
-                        // 文件选择复选框
-                        CheckBox {
-                            Layout.preferredWidth: 24
-                            Layout.preferredHeight: 24
-                            checked: modelData.selected
+                        // // 文件选择复选框
+                        // CheckBox {
+                        //     Layout.preferredWidth: 24
+                        //     Layout.preferredHeight: 24
+                        //     checked: modelData.selected
                             
-                            onCheckedChanged: {
-                                // 只有当复选框状态与文件选择状态不一致时才调用
-                                if (checked !== modelData.selected) {
-                                    fileVM.toggle_file_selection(index, checked)
-                                }
-                            }
-                        }
+                        //     onCheckedChanged: {
+                        //         // 只有当复选框状态与文件选择状态不一致时才调用
+                        //         if (checked !== modelData.selected) {
+                        //             fileVM.toggle_file_selection(index, checked)
+                        //         }
+                        //     }
+                        // }
 
                         // 文件图标
                         Text {
@@ -476,8 +500,8 @@ Rectangle {
                                 var ctrlPressed = (mouse.modifiers & Qt.ControlModifier) !== 0
                                 fileVM.select_file(index, ctrlPressed)
                             } else if (mouse.button === Qt.RightButton) {
-                                contextMenu.contextIndex = index
-                                contextMenu.popup()
+                                videoContextMenu.contextIndex = index
+                                videoContextMenu.popup()
                                 console.log("右键菜单触发，文件索引:", index)
                             }
                         }
